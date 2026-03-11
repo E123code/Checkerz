@@ -8,7 +8,12 @@ namespace CheckerZ
 {
     public partial class GameEngine : Form
     {
-        private Bitmap bmp = null;
+        private Bitmap bmp;
+        private Bitmap canvas;
+        private Pen pen;
+        private int penX;
+        private int penY;
+        private bool drawing = false;
 
         private readonly GameData gameData;
         private readonly GameLogic gameLogic;
@@ -43,6 +48,8 @@ namespace CheckerZ
         {
             bmp = new Bitmap(Width, Height);
 
+            this.DoubleBuffered = true;
+            canvas = new Bitmap(ClientRectangle.Width, ClientRectangle.Height);
         }
 
         //Displaying the game grid to the screen 
@@ -83,6 +90,8 @@ namespace CheckerZ
             {
                 movingPiece.Draw(e.Graphics);
             }
+
+            e.Graphics.DrawImage(canvas, 0, 0);
         }
 
 
@@ -125,6 +134,10 @@ namespace CheckerZ
         // clicking mouse on screen
         private void Matrix_MouseClick(object sender, MouseEventArgs e)
         {
+            if (drawing)
+            {
+                return;
+            }
             if (currentState == GameState.Idle)
             {
                 MessageBox.Show("Press the start game button");
@@ -157,25 +170,6 @@ namespace CheckerZ
                 }
             }
         }
-
-
-        // game starts after choosing time for player and pressing the startgame button
-        //private void startgame_Click(object sender, EventArgs e)
-        //{
-        //    MessageBox.Show("Game Starts!");
-        //    computerTimer.Interval = 500; // 1 second delay
-        //    computerTimer.Tick += ComputerTimer_Tick;
-
-        //    this.DoubleBuffered = true;
-
-        //    this.SetStyle(ControlStyles.AllPaintingInWmPaint |
-        //          ControlStyles.UserPaint |
-        //          ControlStyles.OptimizedDoubleBuffer, true);
-        //    countdownTimer.Start();
-        //    comboBox1.Visible = false;
-        //    startgame.Dispose();
-        //    currentState = GameState.PlayerTurn;
-        //}
 
         private void startgame_Click(object sender, EventArgs e)
         {
@@ -320,9 +314,9 @@ namespace CheckerZ
         }
 
         //right button
-
         private async void RightButtonClick(object sender, EventArgs e)
         {
+            if (drawing) return;
             if (currentState == GameState.Idle) { MessageBox.Show("Press start"); return; }
             if (selectedPiece == null) { MessageBox.Show("Piece not selected"); return; }
 
@@ -366,9 +360,9 @@ namespace CheckerZ
         }
 
         //left button
-
         private async void LeftButtonClick(object sender, EventArgs e)
         {
+            if (drawing) return;
             if (currentState == GameState.Idle) { MessageBox.Show("Press start"); return; }
             if (selectedPiece == null) { MessageBox.Show("Piece not selected"); return; }
 
@@ -413,6 +407,7 @@ namespace CheckerZ
 
         private async void ReverseRightClick(object sender, EventArgs e)
         {
+            if (drawing) return;
             if (currentState == GameState.Idle) { MessageBox.Show("Press start"); return; }
             if (selectedPiece == null) { MessageBox.Show("Piece not selected"); return; }
 
@@ -463,6 +458,7 @@ namespace CheckerZ
 
         private async void ReverseLeftClick(object sender, EventArgs e)
         {
+            if (drawing) return;
             if (currentState == GameState.Idle) { MessageBox.Show("Press start"); return; }
             if (selectedPiece == null) { MessageBox.Show("Piece not selected"); return; }
 
@@ -509,6 +505,86 @@ namespace CheckerZ
                 MessageBox.Show("Cant Move in this direction.");
                 selectedPiece = null;
             }
+        }
+
+        private void DrawOnScreen_Click(object sender, EventArgs e)
+        {
+            if (!drawing)
+            {
+                pen = new Pen(Color.Black, 5);
+                drawing = true;
+                computerTimer.Stop();
+                countdownTimer.Stop();
+                MessageBox.Show("Drawing mode");
+            }
+            else
+            {
+                drawing = false;
+                MessageBox.Show("Drawing mode disabled");
+                if (currentState == GameState.ComputerTurn)
+                {
+                    computerTimer.Start();
+                }
+                else
+                {
+                    if(currentState != GameState.Idle)
+                    {
+                        countdownTimer.Start();
+                    }
+                }
+            }
+        }
+
+        private void ClearDraws_Click(object sender, EventArgs e)
+        {
+            Graphics g = Graphics.FromImage(canvas);
+            g.Clear(Color.Transparent);
+            this.Refresh();
+        }
+
+        private void GameEngine_MouseMove(object sender, MouseEventArgs e)
+        {
+            if (drawing && e.Button == MouseButtons.Left)
+            {
+                    Graphics g = Graphics.FromImage(canvas);
+                    g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+                    pen.StartCap = pen.EndCap = System.Drawing.Drawing2D.LineCap.Round;
+                    g.DrawLine(pen,new Point(penX,penY),e.Location);
+                    penX = e.X; penY = e.Y;
+                    Invalidate();
+            }
+        }
+
+        private void GameEngine_MouseDown(object sender, MouseEventArgs e)
+        {
+            if (drawing && e.Button == MouseButtons.Left)
+            {
+                penX = e.X; penY = e.Y;
+            }
+        }
+
+        private void GameEngine_MouseUp(object sender, MouseEventArgs e)
+        {
+
+        }
+
+        private void GameEngine_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            if (canvas != null)
+            {
+                canvas.Dispose();
+                canvas = null;
+            }
+            if(bmp != null)
+            {
+                bmp.Dispose();
+                canvas = null;
+            }
+            countdownTimer.Dispose();
+            computerTimer.Dispose();
+            animationTimer.Dispose();
+            if(pen != null)
+                pen.Dispose();
         }
     }
 }

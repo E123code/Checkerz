@@ -27,45 +27,6 @@ namespace CheckerZ
             }
         }
 
-        //public bool ExecuteComputerMove()
-        //{
-        //    // Paste your exact ExecuteComputerMove logic here.
-        //    // It will have access to the TryMove methods from the base Admin class!
-        //    if (gameData.computerLocations.Count > 1)
-        //    {
-        //        Shuffle(gameData.computerLocations);
-        //    }
-
-        //    // Trying to capture a player piece
-        //    for (int i = 0; i < gameData.computerLocations.Count; i++)
-        //    {
-        //        int targetRow = gameData.computerLocations[i].Row;
-        //        int targetCol = gameData.computerLocations[i].Col;
-        //        Piece targetPiece = gameData.Board[targetRow, targetCol];
-        //        if (targetPiece != null & (TryCaptureDownRight(i, targetRow, targetCol, targetPiece) || TryCaptureDownLeft(i, targetRow, targetCol, targetPiece)))
-        //            return true;
-        //    }
-
-        //    //Trying to move a piece
-        //    for (int i = 0; i < gameData.computerLocations.Count; i++)
-        //    {
-        //        int targetRow = gameData.computerLocations[i].Row;
-        //        int targetCol = gameData.computerLocations[i].Col;
-        //        Piece targetPiece = gameData.Board[targetRow, targetCol];
-        //        if (targetPiece != null)
-        //        {
-        //            // try move downright or down left
-        //            if (TryMoveDownRight(gameData.computerLocations, i, targetRow, targetCol, targetPiece) || TryMoveDownLeft(gameData.computerLocations, i, targetRow, targetCol, targetPiece))
-        //                return true;
-
-        //            // try move upright or upleft if piece is hasnt moved backwards
-        //            if (!targetPiece.Reversed && (TryMoveUpRight(gameData.computerLocations, i, targetRow, targetCol, targetPiece) || TryMoveUpLeft(gameData.computerLocations, i, targetRow, targetCol, targetPiece)))
-        //                return true;
-        //        }
-        //    }
-        //    return false;
-        //}
-
         // Notice the 3 'out' parameters added to the signature
         public bool ExecuteComputerMove(out Piece movedPiece,out int startX,out int startY)
         {
