@@ -17,12 +17,6 @@ namespace CheckerZ
 
         Timer computerTimer = new Timer();
 
-        private enum Direction { Upright, Upleft, Downright, Downleft }
-
-        private Direction animationDirection;
-
-        private bool runAnimation = false;
-
         private enum GameState { PlayerTurn, ComputerTurn, Idle }
 
         private GameState currentState = GameState.Idle;
@@ -45,30 +39,88 @@ namespace CheckerZ
 
         // --- ALL UI EVENTS STAY HERE ---
 
+        private void GameEngine_Load(object sender, EventArgs e)
+        {
+            bmp = new Bitmap(Width, Height);
+
+        }
+
         //Displaying the game grid to the screen 
+
         private void Form1_Paint(object sender, PaintEventArgs e)
         {
-            grid.DrawGrid(this.CreateGraphics());
-        }
-        //constantly displaying the pieces on board
+            // 1. Make the graphics butter-smooth
+            e.Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
 
-        protected override void OnPaint(PaintEventArgs e)
-        {
-            //base.OnPaint(e);
-            if (bmp != null)
-            {
-                e.Graphics.DrawImage(bmp,this.Width,this.Height);
-            }
+            // 2. Draw the board
+            grid.DrawGrid(e.Graphics);
 
+            Piece movingPiece = null;
+
+            // 3. Draw all stationary pieces first
             foreach (var piece in gameData.Board)
             {
                 if (piece != null)
                 {
-                    piece.Draw(e.Graphics);
+                    // Calculate where this piece is SUPPOSED to be based on its matrix index
+                    int expectedX = Piece.INITIALX + (piece.ColIndex * Piece.MOVEOFFSET);
+                    int expectedY = Piece.INITIALY + (piece.RowIndex * Piece.MOVEOFFSET);
+
+                    // If the piece's actual X/Y doesn't match its expected X/Y, it is currently animating!
+                    if (piece.X != expectedX || piece.Y != expectedY)
+                    {
+                        movingPiece = piece; // Save it for later
+                    }
+                    else
+                    {
+                        piece.Draw(e.Graphics); // Draw normal pieces immediately
+                    }
                 }
+            }
+
+            // 4. Draw the moving piece LAST so it perfectly hovers over the board
+            if (movingPiece != null)
+            {
+                movingPiece.Draw(e.Graphics);
             }
         }
 
+
+        private async Task AnimatePieceAsync(Piece pieceToMove, int targetRow, int targetCol)
+        {
+            // 1. Where are we starting? (Current X, Y)
+            int startX = pieceToMove.X;
+            int startY = pieceToMove.Y;
+
+            // 2. Where are we going? (Calculate final pixels based on target matrix coordinates)
+            int endX = Piece.INITIALX + (targetCol * Piece.MOVEOFFSET);
+            int endY = Piece.INITIALY + (targetRow * Piece.MOVEOFFSET);
+
+            int frames = 5; // Number of animation steps
+            //int delay = 6;  // ~60 FPS
+
+            for (int i = 1; i <= frames; i++)
+            {
+                // 1. Move the math coordinates
+                pieceToMove.X = startX + ((endX - startX) * i / frames);
+                pieceToMove.Y = startY + ((endY - startY) * i / frames);
+
+                // 2. Queue the paint request
+                this.Invalidate();
+
+                // 3. THE FIX: Force Windows to paint the frame RIGHT NOW
+                this.Update();
+
+                // 4. Pause for the next frame
+                await Task.Delay(6);
+            }
+
+            // Ensure final snap and final paint
+            pieceToMove.X = endX;
+            pieceToMove.Y = endY;
+            this.Invalidate();
+            this.Update();
+        }
 
         // clicking mouse on screen
         private void Matrix_MouseClick(object sender, MouseEventArgs e)
@@ -106,7 +158,25 @@ namespace CheckerZ
             }
         }
 
+
         // game starts after choosing time for player and pressing the startgame button
+        //private void startgame_Click(object sender, EventArgs e)
+        //{
+        //    MessageBox.Show("Game Starts!");
+        //    computerTimer.Interval = 500; // 1 second delay
+        //    computerTimer.Tick += ComputerTimer_Tick;
+
+        //    this.DoubleBuffered = true;
+
+        //    this.SetStyle(ControlStyles.AllPaintingInWmPaint |
+        //          ControlStyles.UserPaint |
+        //          ControlStyles.OptimizedDoubleBuffer, true);
+        //    countdownTimer.Start();
+        //    comboBox1.Visible = false;
+        //    startgame.Dispose();
+        //    currentState = GameState.PlayerTurn;
+        //}
+
         private void startgame_Click(object sender, EventArgs e)
         {
             MessageBox.Show("Game Starts!");
@@ -120,7 +190,7 @@ namespace CheckerZ
                   ControlStyles.OptimizedDoubleBuffer, true);
             countdownTimer.Start();
             comboBox1.Visible = false;
-            startgame.Dispose();
+            GameIcon.Enabled = false;
             currentState = GameState.PlayerTurn;
         }
 
@@ -202,26 +272,41 @@ namespace CheckerZ
             this.Close();
         }
 
-
-
         //State machine that handles computer and player taking turn while playing
         private async void ComputerTimer_Tick(object sender, EventArgs e)
         {
             computerTimer.Stop(); // Stop so it only runs once per turn
-
-            if (gameLogic.CheckWin() || !computerController.ExecuteComputerMove())
+            Piece movedPiece = null;
+            int startX = 0;
+            int startY = 0;
+            // Check if player won before computer moves
+            if (gameLogic.CheckWin())
             {
                 PlayerWin();
                 return;
             }
+
+            // Execute the move and capture the outputs!
+            if (computerController.ExecuteComputerMove(out movedPiece,out startX, out startY))
+            {
+                // --- PREPARE FOR ANIMATION ---
+                // Force the visual coordinates back to the start so it can glide
+                movedPiece.X = startX;
+                movedPiece.Y = startY;
+
+                // Run the smooth animation using the new logical coordinates
+                await AnimatePieceAsync(movedPiece, movedPiece.RowIndex, movedPiece.ColIndex);
+            }
             else
             {
-                countdownTimer.Stop();
-                countDownTimer = Convert.ToInt32(comboBox1.Text);
-                currentState = GameState.ComputerTurn;
+                // If ExecuteComputerMove returns false, computer has no legal moves.
+                PlayerWin();
+                return;
             }
 
-            // After computer is done, give control back to player
+            // After computer is done animating, setup player's turn
+            countdownTimer.Stop();
+            countDownTimer = Convert.ToInt32(comboBox1.Text);
             currentState = GameState.PlayerTurn;
 
             if (gameLogic.CheckLose())
@@ -229,219 +314,201 @@ namespace CheckerZ
                 ComputerWin();
                 return;
             }
+
             countdownTimer.Start();
             this.Refresh();
-
         }
-
 
         //right button
 
-        private void RightButtonClick(object sender, EventArgs e)
+        private async void RightButtonClick(object sender, EventArgs e)
         {
-            if (currentState == GameState.Idle)
-            {
-                MessageBox.Show("Press the start game button");
-                return;
-            }
-            if (selectedPiece == null)
-            {
-                MessageBox.Show("Piece not selected");
-                return;
-            }
+            if (currentState == GameState.Idle) { MessageBox.Show("Press start"); return; }
+            if (selectedPiece == null) { MessageBox.Show("Piece not selected"); return; }
+
             int targetCol = selectedPiece.ColIndex;
             int targetRow = selectedPiece.RowIndex;
-            Piece targetPiece = gameData.Board[targetRow, targetCol];
+            Piece targetPiece = selectedPiece;
+
+            // --- GRAB STARTING PIXELS BEFORE THE LOGIC CHANGES THEM ---
+            int startX = targetPiece.X;
+            int startY = targetPiece.Y;
+
             int locationIndex = 0;
             for (int i = 0; i < gameData.playerLocations.Count; i++)
             {
                 if (gameData.playerLocations[i].Row == targetRow && gameData.playerLocations[i].Col == targetCol)
                     locationIndex = i;
             }
+
+            // Update the matrix and run the logic!
             if (playerController.AttemptMoveRight(targetPiece, locationIndex))
             {
+
+                // --- PREPARE FOR ANIMATION ---
+                // Since playerController changed pieceToAnimate.X, we force it back to the start
+                targetPiece.X = startX;
+                targetPiece.Y = startY;
+
+                // Run the smooth animation using the new logical coordinates
+                await AnimatePieceAsync(targetPiece, targetPiece.RowIndex, targetPiece.ColIndex);
+
                 selectedPiece = null;
-                this.Refresh();
                 currentState = GameState.ComputerTurn;
                 computerTimer.Start();
                 return;
             }
             else
             {
-                MessageBox.Show("Cant Move in this direction. Choose another direction or select another piece");
+                MessageBox.Show("Cant Move in this direction.");
                 selectedPiece = null;
             }
         }
 
         //left button
-        private void LeftButtonClick(object sender, EventArgs e)
+
+        private async void LeftButtonClick(object sender, EventArgs e)
         {
-            if (currentState == GameState.Idle)
-            {
-                MessageBox.Show("Press the start game button");
-                return;
-            }
-            if (selectedPiece == null)
-            {
-                MessageBox.Show("Piece not selected");
-                return;
-            }
+            if (currentState == GameState.Idle) { MessageBox.Show("Press start"); return; }
+            if (selectedPiece == null) { MessageBox.Show("Piece not selected"); return; }
 
             int targetCol = selectedPiece.ColIndex;
             int targetRow = selectedPiece.RowIndex;
-            Piece targetPiece = gameData.Board[targetRow, targetCol];
+            Piece targetPiece = selectedPiece;
+
+            // --- GRAB STARTING PIXELS BEFORE THE LOGIC CHANGES THEM ---
+            int startX = targetPiece.X;
+            int startY = targetPiece.Y;
+
             int locationIndex = 0;
             for (int i = 0; i < gameData.playerLocations.Count; i++)
             {
                 if (gameData.playerLocations[i].Row == targetRow && gameData.playerLocations[i].Col == targetCol)
                     locationIndex = i;
             }
+
+            // Update the matrix and run the logic!
             if (playerController.AttemptMoveLeft(targetPiece, locationIndex))
             {
+
+                // --- PREPARE FOR ANIMATION ---
+                // Since playerController changed pieceToAnimate.X, we force it back to the start
+                targetPiece.X = startX;
+                targetPiece.Y = startY;
+
+                // Run the smooth animation using the new logical coordinates
+                await AnimatePieceAsync(targetPiece, targetPiece.RowIndex, targetPiece.ColIndex);
+
                 selectedPiece = null;
-                this.Refresh();
                 currentState = GameState.ComputerTurn;
                 computerTimer.Start();
                 return;
             }
             else
             {
-                MessageBox.Show("Cant Move in this direction. Choose another direction or select another piece");
+                MessageBox.Show("Cant Move in this direction.");
                 selectedPiece = null;
             }
         }
 
-        //reverseright button
-        private void ReverseRightClick(object sender, EventArgs e)
+        private async void ReverseRightClick(object sender, EventArgs e)
         {
-            if (currentState == GameState.Idle)
-            {
-                MessageBox.Show("Press the start game button");
-                return;
-            }
-            if (selectedPiece == null)
-            {
-                MessageBox.Show("Piece not selected");
-                return;
-            }
-            if (selectedPiece.Reversed)
-            {
-                MessageBox.Show("Can only reverse a piece once. Select another direction or move another piece");
-                selectedPiece = null;
-                return;
-            }
+            if (currentState == GameState.Idle) { MessageBox.Show("Press start"); return; }
+            if (selectedPiece == null) { MessageBox.Show("Piece not selected"); return; }
 
             int targetCol = selectedPiece.ColIndex;
             int targetRow = selectedPiece.RowIndex;
-            Piece targetPiece = gameData.Board[targetRow, targetCol];
+            Piece targetPiece = selectedPiece;
+
+            if (targetPiece.Reversed)
+            {
+                MessageBox.Show("Already reversed. move in another direction or select another piece");
+                return;
+            }
+
+            // --- GRAB STARTING PIXELS BEFORE THE LOGIC CHANGES THEM ---
+            int startX = targetPiece.X;
+            int startY = targetPiece.Y;
+
             int locationIndex = 0;
             for (int i = 0; i < gameData.playerLocations.Count; i++)
             {
                 if (gameData.playerLocations[i].Row == targetRow && gameData.playerLocations[i].Col == targetCol)
                     locationIndex = i;
             }
+
+            // Update the matrix and run the logic!
             if (playerController.TryMoveDownRight(gameData.playerLocations, locationIndex, targetRow, targetCol, targetPiece))
             {
+
+                // --- PREPARE FOR ANIMATION ---
+                // Since playerController changed pieceToAnimate.X, we force it back to the start
+                targetPiece.X = startX;
+                targetPiece.Y = startY;
+
+                // Run the smooth animation using the new logical coordinates
+                await AnimatePieceAsync(targetPiece, targetPiece.RowIndex, targetPiece.ColIndex);
+
                 selectedPiece = null;
-                this.Refresh();
                 currentState = GameState.ComputerTurn;
                 computerTimer.Start();
                 return;
             }
             else
             {
-                MessageBox.Show("Cant Move in this direction. Choose another direction or select another piece");
+                MessageBox.Show("Cant Move in this direction.");
                 selectedPiece = null;
             }
         }
 
-        //reverseleft button
-        private void ReverseLeftClick(object sender, EventArgs e)
+        private async void ReverseLeftClick(object sender, EventArgs e)
         {
-            if (currentState == GameState.Idle)
-            {
-                MessageBox.Show("Press the start game button");
-                return;
-            }
-            if (selectedPiece == null)
-            {
-                MessageBox.Show("Piece not selected");
-                return;
-            }
-            if (selectedPiece.Reversed)
-            {
-                MessageBox.Show("Can only reverse a piece once. Select another direction or move another piece");
-                selectedPiece = null;
-                return;
-            }
+            if (currentState == GameState.Idle) { MessageBox.Show("Press start"); return; }
+            if (selectedPiece == null) { MessageBox.Show("Piece not selected"); return; }
 
             int targetCol = selectedPiece.ColIndex;
             int targetRow = selectedPiece.RowIndex;
-            Piece targetPiece = gameData.Board[targetRow, targetCol];
-            int locationIndex = 0;
+            Piece targetPiece = selectedPiece;
 
+            if (targetPiece.Reversed)
+            {
+                MessageBox.Show("Already reversed. move in another direction or select another piece");
+                return;
+            }
+
+            // --- GRAB STARTING PIXELS BEFORE THE LOGIC CHANGES THEM ---
+            int startX = targetPiece.X;
+            int startY = targetPiece.Y;
+
+            int locationIndex = 0;
             for (int i = 0; i < gameData.playerLocations.Count; i++)
             {
                 if (gameData.playerLocations[i].Row == targetRow && gameData.playerLocations[i].Col == targetCol)
                     locationIndex = i;
             }
 
+            // Update the matrix and run the logic!
             if (playerController.TryMoveDownLeft(gameData.playerLocations, locationIndex, targetRow, targetCol, targetPiece))
             {
+
+                // --- PREPARE FOR ANIMATION ---
+                // Since playerController changed pieceToAnimate.X, we force it back to the start
+                targetPiece.X = startX;
+                targetPiece.Y = startY;
+
+                // Run the smooth animation using the new logical coordinates
+                await AnimatePieceAsync(targetPiece, targetPiece.RowIndex, targetPiece.ColIndex);
+
                 selectedPiece = null;
-                this.Refresh();
                 currentState = GameState.ComputerTurn;
                 computerTimer.Start();
                 return;
             }
             else
             {
-                MessageBox.Show("Cant Move in this direction. Choose another direction or select another piece");
+                MessageBox.Show("Cant Move in this direction.");
                 selectedPiece = null;
             }
-        }
-
-        private void GameEngine_Load(object sender, EventArgs e)
-        {
-            bmp = new Bitmap(Width, Height);
-
-        }
-
-        private void animationTimer_Tick(object sender, EventArgs e)
-        {
-        //    if (runAnimation)
-        //    {
-        //        int animationCountDown = 60;
-        //        switch (animationDirection)
-        //        {
-        //            case Direction.Upright:
-        //                while()
-        //                {
-        //                    selectedPiece.MoveUpRight(false);
-        //                    selectedPiece = null;
-        //                    this.Invalidate();
-        //                    animationCountDown--;
-        //                }
-        //                break;
-        //            case Direction.Upleft:
-        //                selectedPiece.MoveUpLeft(false);
-        //                selectedPiece = null;
-        //                this.Invalidate();
-        //                break;
-        //            case Direction.Downright:
-        //                selectedPiece.MoveDownRight(false);
-        //                selectedPiece = null;
-        //                this.Invalidate();
-        //                break;
-        //            case Direction.Downleft:
-        //                selectedPiece.MoveDownLeft(false);
-        //                selectedPiece = null;
-        //                this.Invalidate();
-        //                break;
-        //            default:
-        //                break;
-        //        }
-        //    }
         }
     }
 }

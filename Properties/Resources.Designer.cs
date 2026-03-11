@@ -63,9 +63,9 @@ namespace CheckerZ.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap checkersboard {
+        internal static System.Drawing.Bitmap CheckerZ {
             get {
-                object obj = ResourceManager.GetObject("checkersboard", resourceCulture);
+                object obj = ResourceManager.GetObject("CheckerZ", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
