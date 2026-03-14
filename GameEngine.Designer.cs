@@ -232,12 +232,10 @@
             this.ShowIcon = false;
             this.Text = "CheckerZ";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.GameEngine_FormClosing);
-            this.Load += new System.EventHandler(this.GameEngine_Load);
             this.Paint += new System.Windows.Forms.PaintEventHandler(this.Form1_Paint);
             this.MouseClick += new System.Windows.Forms.MouseEventHandler(this.Matrix_MouseClick);
             this.MouseDown += new System.Windows.Forms.MouseEventHandler(this.GameEngine_MouseDown);
             this.MouseMove += new System.Windows.Forms.MouseEventHandler(this.GameEngine_MouseMove);
-            this.MouseUp += new System.Windows.Forms.MouseEventHandler(this.GameEngine_MouseUp);
             ((System.ComponentModel.ISupportInitialize)(this.GameIcon)).EndInit();
             this.ToolStrip.ResumeLayout(false);
             this.ToolStrip.PerformLayout();

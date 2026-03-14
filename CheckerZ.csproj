@@ -51,6 +51,7 @@
     <Compile Include="ComputerController.cs" />
     <Compile Include="GameData.cs" />
     <Compile Include="GameLogic.cs" />
+    <Compile Include="Painter.cs" />
     <Compile Include="Piece.cs" />
     <Compile Include="GameEngine.cs">
       <SubType>Form</SubType>
