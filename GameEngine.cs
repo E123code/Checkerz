@@ -8,6 +8,8 @@ namespace CheckerZ
 {
     public partial class GameEngine : Form
     {
+        private ReplayDataDataContext DB = new ReplayDataDataContext();
+
         private int countDownTimer;
 
         private Piece selectedPiece;
@@ -186,6 +188,11 @@ namespace CheckerZ
             comboBox1.Visible = false;
             GameIcon.Enabled = false;
             currentState = GameState.PlayerTurn;
+
+            GameTable gameTable =new GameTable {PlayerName =  "Ofek",GameDate =  DateTime.Now, GameOutcome =  null, EndCondition = null };
+            DB.GameTables.InsertOnSubmit(gameTable);
+            DB.SubmitChanges();
+
         }
 
         // logic for combo box options
@@ -313,6 +320,8 @@ namespace CheckerZ
             countdownTimer.Start();
             this.Refresh();
         }
+
+        //private void SaveTurn()
 
         //right button
         private async void RightButtonClick(object sender, EventArgs e)
