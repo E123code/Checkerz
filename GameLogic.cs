@@ -14,31 +14,60 @@
         }
 
         // check if the player won the game
-        public bool CheckWin()
+        public bool CheckWin(out string outcome,out string endCondition)
         {
-            //
-            if (gameData.computerLocations.Count == 0) return true;
-
+            //check if player captured all computer pieces
+            if (gameData.computerLocations.Count == 0)
+            {
+                outcome = GameOutcome.Win.ToString();
+                endCondition = EndCondition.CapturedAllComputerPieces.ToString();
+                return true;
+            }
+            //check if player piece reached the top of the board
             for (int i = 0; i < COLNNUMBER; i++)
             {
                 if (gameData.Board[0, i] != null && gameData.Board[0, i].IsPlayer)
+                {
+                    outcome = GameOutcome.Win.ToString();
+                    endCondition = EndCondition.PlayerReachedTop.ToString();
                     return true;
+                }
             }
+            outcome = null;
+            endCondition = null;
             return false;
         }
 
-        public bool CheckLose()
+        public bool CheckLose(out string outcome, out string endCondition)
         {
-            if (gameData.playerLocations.Count == 0) return true;
+            //check if computer captured all player pieces
+            if (gameData.playerLocations.Count == 0)
+            {
+                outcome = GameOutcome.Loss.ToString();
+                endCondition = EndCondition.CapturedAllPlayerPieces.ToString();
+                return true;
+            }
 
+            //check if computer piece reached the bottom of the board
             for (int i = 0; i < COLNNUMBER; i++)
             {
                 if (gameData.Board[7, i] != null && !gameData.Board[7, i].IsPlayer)
+                {
+                    outcome = GameOutcome.Loss.ToString();
+                    endCondition = EndCondition.ComputerReachedBottom.ToString();
                     return true;
+                }
+            }
+            // check if player is blocked from any possible move
+            if (!CheckPossibleMovesForPlayer())
+            {
+                outcome = GameOutcome.Loss.ToString();
+                endCondition = EndCondition.PlayerBlocked.ToString();
+                return true;
             }
 
-            if (!CheckPossibleMovesForPlayer()) return true;
-
+            outcome = null;
+            endCondition = null;
             return false;
         }
 

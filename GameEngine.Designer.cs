@@ -46,6 +46,7 @@
             this.ToolStrip = new System.Windows.Forms.ToolStrip();
             this.DrawOnScreen = new System.Windows.Forms.ToolStripButton();
             this.ClearDraws = new System.Windows.Forms.ToolStripButton();
+            this.RunReplay = new System.Windows.Forms.ToolStripButton();
             ((System.ComponentModel.ISupportInitialize)(this.GameIcon)).BeginInit();
             this.ToolStrip.SuspendLayout();
             this.SuspendLayout();
@@ -182,7 +183,8 @@
             // 
             this.ToolStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.DrawOnScreen,
-            this.ClearDraws});
+            this.ClearDraws,
+            this.RunReplay});
             this.ToolStrip.Location = new System.Drawing.Point(0, 0);
             this.ToolStrip.Name = "ToolStrip";
             this.ToolStrip.Size = new System.Drawing.Size(1264, 25);
@@ -210,6 +212,16 @@
             this.ClearDraws.Text = "ClearDraws";
             this.ClearDraws.ToolTipText = "ClearDraws";
             this.ClearDraws.Click += new System.EventHandler(this.ClearDraws_Click);
+            // 
+            // RunReplay
+            // 
+            this.RunReplay.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
+            this.RunReplay.Image = ((System.Drawing.Image)(resources.GetObject("RunReplay.Image")));
+            this.RunReplay.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.RunReplay.Name = "RunReplay";
+            this.RunReplay.Size = new System.Drawing.Size(67, 22);
+            this.RunReplay.Text = "RunReplay";
+            this.RunReplay.Click += new System.EventHandler(this.RunReplay_Click);
             // 
             // GameEngine
             // 
@@ -262,6 +274,7 @@
         private System.Windows.Forms.ToolStrip ToolStrip;
         private System.Windows.Forms.ToolStripButton DrawOnScreen;
         private System.Windows.Forms.ToolStripButton ClearDraws;
+        private System.Windows.Forms.ToolStripButton RunReplay;
     }
 }
 

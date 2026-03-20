@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -21,10 +22,13 @@ namespace CheckerZ
         private GameState currentState;
 
         private readonly Painter painter;
-        private readonly GameData gameData;
-        private readonly GameLogic gameLogic;
-        private readonly PlayerController playerController;
-        private readonly ComputerController computerController;
+        private GameData gameData;
+        private GameLogic gameLogic;
+        private PlayerController playerController;
+        private ComputerController computerController;
+
+        private MoveSnapshot snapshot;
+        private int currentGameID;
 
         // intialzing the game
         public GameEngine()
@@ -46,6 +50,21 @@ namespace CheckerZ
             playerController = new PlayerController(gameData, gameLogic);
             computerController = new ComputerController(gameData, gameLogic);
 
+        }
+        private void ResetGame()
+        {
+            this.DoubleBuffered = true;
+
+            countDownTimer = 10;
+            selectedPiece = null;
+            bmp = new Bitmap(Width, Height);
+            computerTimer = new Timer();
+            currentState = GameState.Idle;
+
+            gameData = new GameData();
+            gameLogic = new GameLogic(gameData);
+            playerController = new PlayerController(gameData, gameLogic);
+            computerController = new ComputerController(gameData, gameLogic);
         }
 
         // --- ALL UI EVENTS STAY HERE ---
@@ -189,10 +208,39 @@ namespace CheckerZ
             GameIcon.Enabled = false;
             currentState = GameState.PlayerTurn;
 
-            GameTable gameTable =new GameTable {PlayerName =  "Ofek",GameDate =  DateTime.Now, GameOutcome =  null, EndCondition = null };
-            DB.GameTables.InsertOnSubmit(gameTable);
+            GameTable currentGame = new GameTable {PlayerName =  "Ofek",GameDate =  DateTime.Now, GameOutcome =  null, EndCondition = null };
+            DB.GameTables.InsertOnSubmit(currentGame);
             DB.SubmitChanges();
+            currentGameID = currentGame.GameID;
+            snapshot = new MoveSnapshot(currentGameID, 1, gameData.playerLocations, gameData.computerLocations, 0, 0, 0, 0);
+            SaveMove();
+        }
 
+        //uploads the current snapshot to data base
+        private void SaveMove()
+        {
+            GameMoveTable currentMove = new GameMoveTable {
+                GameID = snapshot.GameID,
+                MoveNumber = snapshot.MoveNumber,
+                PlayerLocations = string.Join(",",snapshot.PlayerLocations),
+                ComputerLocations = string.Join(",", snapshot.ComputerLocations),
+                StartRow = snapshot.StartRow,
+                StartCol = snapshot.StartCol,
+                TargetRow = snapshot.TargetRow,
+                TargetCol = snapshot.TargetCol};
+            DB.GameMoveTables.InsertOnSubmit(currentMove);
+            DB.SubmitChanges();
+        }
+
+        private void SaveGame(string outcome,string endCondition)
+        {
+            var game = DB.GameTables.First(Game => Game.GameID == currentGameID);
+            if (game != null)
+            {
+                game.GameOutcome = outcome;
+                game.EndCondition = endCondition;
+            }
+            DB.SubmitChanges();
         }
 
         // logic for combo box options
@@ -220,6 +268,9 @@ namespace CheckerZ
             }
             else
             {
+                string endCondition = EndCondition.TimerRanOut.ToString();
+                string outcome = GameOutcome.Loss.ToString();
+                SaveGame(outcome, endCondition);
                 countdownTimer.Stop();
                 MessageBox.Show("time is up!");
                 ComputerWin();
@@ -261,7 +312,9 @@ namespace CheckerZ
             await blinkingPieces(gameData.computerLocations);
             MessageBox.Show("Computer Won !");
             MessageBox.Show("Thank you for playing my game!");
-            this.Close();
+            ResetGame();
+            this.Refresh();
+            //this.Close();
         }
 
         //event for player win
@@ -271,7 +324,9 @@ namespace CheckerZ
             await blinkingPieces(gameData.playerLocations);
             MessageBox.Show("Player Won !");
             MessageBox.Show("Thank you for playing my game!");
-            this.Close();
+            ResetGame();
+            this.Refresh();
+            //this.Close();
         }
 
         //State machine that handles computer and player taking turn while playing
@@ -279,17 +334,22 @@ namespace CheckerZ
         {
             computerTimer.Stop(); // Stop so it only runs once per turn
             Piece movedPiece = null;
-            int startX = 0;
-            int startY = 0;
+            string outcome;
+            string endCondition;
             // Check if player won before computer moves
-            if (gameLogic.CheckWin())
+            if (gameLogic.CheckWin(out outcome,out endCondition))
             {
+                SaveGame(outcome, endCondition);
                 PlayerWin();
                 return;
             }
+            int startX = 0;
+            int startY = 0;
+            int startRow;
+            int startCol;
 
-            // Execute the move and capture the outputs!
-            if (computerController.ExecuteComputerMove(out movedPiece,out startX, out startY))
+            // Try to execute computer move 
+            if (computerController.ExecuteComputerMove(out movedPiece,out startX, out startY,out startRow,out startCol))
             {
                 // --- PREPARE FOR ANIMATION ---
                 // Force the visual coordinates back to the start so it can glide
@@ -298,10 +358,16 @@ namespace CheckerZ
 
                 // Run the smooth animation using the new logical coordinates
                 await AnimatePieceAsync(movedPiece, movedPiece.RowIndex, movedPiece.ColIndex);
+
+                snapshot.UpdateSnapshot(gameData.playerLocations,gameData.computerLocations,startRow,startCol,movedPiece.RowIndex,movedPiece.ColIndex);
+                SaveMove();
             }
+            // If ExecuteComputerMove returns false, computer has no legal moves.
             else
             {
-                // If ExecuteComputerMove returns false, computer has no legal moves.
+                outcome = GameOutcome.Win.ToString();
+                endCondition = EndCondition.ComputerBlocked.ToString();
+                SaveGame(outcome, endCondition);
                 PlayerWin();
                 return;
             }
@@ -311,8 +377,9 @@ namespace CheckerZ
             countDownTimer = Convert.ToInt32(comboBox1.Text);
             currentState = GameState.PlayerTurn;
 
-            if (gameLogic.CheckLose())
+            if (gameLogic.CheckLose(out outcome, out endCondition))
             {
+                SaveGame(outcome, endCondition);
                 ComputerWin();
                 return;
             }
@@ -320,8 +387,6 @@ namespace CheckerZ
             countdownTimer.Start();
             this.Refresh();
         }
-
-        //private void SaveTurn()
 
         //right button
         private async void RightButtonClick(object sender, EventArgs e)
@@ -333,8 +398,8 @@ namespace CheckerZ
             if (currentState == GameState.Idle) { MessageBox.Show("Press start"); return; }
             if (selectedPiece == null) { MessageBox.Show("Piece not selected"); return; }
 
-            int targetCol = selectedPiece.ColIndex;
-            int targetRow = selectedPiece.RowIndex;
+            int startCol = selectedPiece.ColIndex;
+            int startRow = selectedPiece.RowIndex;
             Piece targetPiece = selectedPiece;
 
             // --- GRAB STARTING PIXELS BEFORE THE LOGIC CHANGES THEM ---
@@ -344,7 +409,7 @@ namespace CheckerZ
             int locationIndex = 0;
             for (int i = 0; i < gameData.playerLocations.Count; i++)
             {
-                if (gameData.playerLocations[i].Row == targetRow && gameData.playerLocations[i].Col == targetCol)
+                if (gameData.playerLocations[i].Row == startRow && gameData.playerLocations[i].Col == startCol)
                     locationIndex = i;
             }
 
@@ -360,6 +425,8 @@ namespace CheckerZ
                 // Run the smooth animation using the new logical coordinates
                 await AnimatePieceAsync(targetPiece, targetPiece.RowIndex, targetPiece.ColIndex);
 
+                snapshot.UpdateSnapshot(gameData.playerLocations,gameData.computerLocations,startRow,startCol,targetPiece.RowIndex,targetPiece.ColIndex);
+                SaveMove();
                 selectedPiece = null;
                 currentState = GameState.ComputerTurn;
                 computerTimer.Start();
@@ -382,8 +449,8 @@ namespace CheckerZ
             if (currentState == GameState.Idle) { MessageBox.Show("Press start"); return; }
             if (selectedPiece == null) { MessageBox.Show("Piece not selected"); return; }
 
-            int targetCol = selectedPiece.ColIndex;
-            int targetRow = selectedPiece.RowIndex;
+            int startCol = selectedPiece.ColIndex;
+            int startRow = selectedPiece.RowIndex;
             Piece targetPiece = selectedPiece;
 
             // --- GRAB STARTING PIXELS BEFORE THE LOGIC CHANGES THEM ---
@@ -393,7 +460,7 @@ namespace CheckerZ
             int locationIndex = 0;
             for (int i = 0; i < gameData.playerLocations.Count; i++)
             {
-                if (gameData.playerLocations[i].Row == targetRow && gameData.playerLocations[i].Col == targetCol)
+                if (gameData.playerLocations[i].Row == startRow && gameData.playerLocations[i].Col == startCol)
                     locationIndex = i;
             }
 
@@ -409,6 +476,8 @@ namespace CheckerZ
                 // Run the smooth animation using the new logical coordinates
                 await AnimatePieceAsync(targetPiece, targetPiece.RowIndex, targetPiece.ColIndex);
 
+                snapshot.UpdateSnapshot(gameData.playerLocations, gameData.computerLocations, startRow, startCol, targetPiece.RowIndex, targetPiece.ColIndex);
+                SaveMove();
                 selectedPiece = null;
                 currentState = GameState.ComputerTurn;
                 computerTimer.Start();
@@ -430,8 +499,8 @@ namespace CheckerZ
             if (currentState == GameState.Idle) { MessageBox.Show("Press start"); return; }
             if (selectedPiece == null) { MessageBox.Show("Piece not selected"); return; }
 
-            int targetCol = selectedPiece.ColIndex;
-            int targetRow = selectedPiece.RowIndex;
+            int startCol = selectedPiece.ColIndex;
+            int startRow = selectedPiece.RowIndex;
             Piece targetPiece = selectedPiece;
 
             if (targetPiece.Reversed)
@@ -447,12 +516,12 @@ namespace CheckerZ
             int locationIndex = 0;
             for (int i = 0; i < gameData.playerLocations.Count; i++)
             {
-                if (gameData.playerLocations[i].Row == targetRow && gameData.playerLocations[i].Col == targetCol)
+                if (gameData.playerLocations[i].Row == startRow && gameData.playerLocations[i].Col == startCol)
                     locationIndex = i;
             }
 
             // Update the matrix and run the logic!
-            if (playerController.TryMoveDownRight(gameData.playerLocations, locationIndex, targetRow, targetCol, targetPiece))
+            if (playerController.TryMoveDownRight(gameData.playerLocations, locationIndex, startRow, startCol, targetPiece))
             {
 
                 // --- PREPARE FOR ANIMATION ---
@@ -463,6 +532,8 @@ namespace CheckerZ
                 // Run the smooth animation using the new logical coordinates
                 await AnimatePieceAsync(targetPiece, targetPiece.RowIndex, targetPiece.ColIndex);
 
+                snapshot.UpdateSnapshot(gameData.playerLocations, gameData.computerLocations, startRow, startCol, targetPiece.RowIndex, targetPiece.ColIndex);
+                SaveMove();
                 selectedPiece = null;
                 currentState = GameState.ComputerTurn;
                 computerTimer.Start();
@@ -484,8 +555,8 @@ namespace CheckerZ
             if (currentState == GameState.Idle) { MessageBox.Show("Press start"); return; }
             if (selectedPiece == null) { MessageBox.Show("Piece not selected"); return; }
 
-            int targetCol = selectedPiece.ColIndex;
-            int targetRow = selectedPiece.RowIndex;
+            int startCol = selectedPiece.ColIndex;
+            int startRow = selectedPiece.RowIndex;
             Piece targetPiece = selectedPiece;
 
             if (targetPiece.Reversed)
@@ -501,12 +572,12 @@ namespace CheckerZ
             int locationIndex = 0;
             for (int i = 0; i < gameData.playerLocations.Count; i++)
             {
-                if (gameData.playerLocations[i].Row == targetRow && gameData.playerLocations[i].Col == targetCol)
+                if (gameData.playerLocations[i].Row == startRow && gameData.playerLocations[i].Col == startCol)
                     locationIndex = i; 
             }
 
             // Update the matrix and run the logic!
-            if (playerController.TryMoveDownLeft(gameData.playerLocations, locationIndex, targetRow, targetCol, targetPiece))
+            if (playerController.TryMoveDownLeft(gameData.playerLocations, locationIndex, startRow, startCol, targetPiece))
             {
 
                 // --- PREPARE FOR ANIMATION ---
@@ -517,6 +588,8 @@ namespace CheckerZ
                 // Run the smooth animation using the new logical coordinates
                 await AnimatePieceAsync(targetPiece, targetPiece.RowIndex, targetPiece.ColIndex);
 
+                snapshot.UpdateSnapshot(gameData.playerLocations, gameData.computerLocations, startRow, startCol, targetPiece.RowIndex, targetPiece.ColIndex);
+                SaveMove();
                 selectedPiece = null;
                 currentState = GameState.ComputerTurn;
                 computerTimer.Start();
@@ -554,6 +627,7 @@ namespace CheckerZ
                 }
             }
         }
+
         private void ClearDraws_Click(object sender, EventArgs e)
         {
             Graphics g = Graphics.FromImage(painter.Canvas);
@@ -595,5 +669,22 @@ namespace CheckerZ
             if(painter.Pen != null)
                 painter.Pen.Dispose();
         }
+
+        private void RunReplay_Click(object sender, EventArgs e)
+        {
+            using (ReplayMenu replay = new ReplayMenu())
+            {
+                if (replay.ShowDialog() == DialogResult.OK)
+                {
+                    currentGameID = replay.selectedID;
+                }
+            }
+        }
+        //private void RunReplay()
+        //{
+        //    var game = DB.GameTables.First(replay=>replay.GameID == currentGameID);
+        //    List<MoveSnapshot> moveSnapshots = new List<MoveSnapshot>();
+
+        //}
     }
 }

@@ -65,8 +65,11 @@
     <Compile Include="Controller.cs" />
     <Compile Include="BoardGrid.cs" />
     <Compile Include="ComputerController.cs" />
+    <Compile Include="EndCondition.cs" />
     <Compile Include="GameData.cs" />
     <Compile Include="GameLogic.cs" />
+    <Compile Include="GameOutcome.cs" />
+    <Compile Include="MoveSnapshot.cs" />
     <Compile Include="Painter.cs" />
     <Compile Include="Piece.cs" />
     <Compile Include="GameEngine.cs">
@@ -79,10 +82,19 @@
     <Compile Include="PlayerController.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ReplayData.cs">
+      <DependentUpon>ReplayData.dbml</DependentUpon>
+    </Compile>
     <Compile Include="ReplayData.designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>ReplayData.dbml</DependentUpon>
+    </Compile>
+    <Compile Include="ReplayMenu.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ReplayMenu.Designer.cs">
+      <DependentUpon>ReplayMenu.cs</DependentUpon>
     </Compile>
     <EmbeddedResource Include="GameEngine.resx">
       <DependentUpon>GameEngine.cs</DependentUpon>
@@ -97,6 +109,9 @@
       <DependentUpon>Resources.resx</DependentUpon>
       <DesignTime>True</DesignTime>
     </Compile>
+    <EmbeddedResource Include="ReplayMenu.resx">
+      <DependentUpon>ReplayMenu.cs</DependentUpon>
+    </EmbeddedResource>
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>

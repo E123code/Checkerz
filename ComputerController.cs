@@ -28,11 +28,13 @@ namespace CheckerZ
         }
 
         // Notice the 3 'out' parameters added to the signature
-        public bool ExecuteComputerMove(out Piece movedPiece,out int startX,out int startY)
+        public bool ExecuteComputerMove(out Piece movedPiece,out int startX,out int startY,out int startRow,out int startCol)
         {
             movedPiece = null;
             startX = 0;
             startY = 0;
+            startRow = 0;
+            startCol = 0;
 
             if (gameData.computerLocations.Count > 1)
             {
@@ -44,6 +46,9 @@ namespace CheckerZ
             {
                 int targetRow = gameData.computerLocations[i].Row;
                 int targetCol = gameData.computerLocations[i].Col;
+
+                startRow = targetRow;
+                startCol = targetCol;
                 Piece targetPiece = gameData.Board[targetRow, targetCol];
 
                 if (targetPiece != null)
@@ -76,6 +81,9 @@ namespace CheckerZ
                     // Capture coordinates BEFORE moving
                     int tempX = targetPiece.X;
                     int tempY = targetPiece.Y;
+
+                    startRow = targetRow;
+                    startCol = targetCol;
 
                     if (TryMoveDownRight(gameData.computerLocations, i, targetRow, targetCol, targetPiece) ||
                         TryMoveDownLeft(gameData.computerLocations, i, targetRow, targetCol, targetPiece))

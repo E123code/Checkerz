@@ -11,5 +11,9 @@
             this.Row = row;
             this.Col = col;
         }
+        public override string ToString()
+        {
+            return $"[{Row},{Col}]";
+        }
     }
 }
