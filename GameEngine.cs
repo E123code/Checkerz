@@ -742,17 +742,20 @@ namespace CheckerZ
                         move.TargetCol);
             foreach (var move in moves)
             {
-
                 if (move.MoveNumber == 1)
                 {
                     UpdateBoardState(move.PlayerLocations, move.ComputerLocations);
                     this.Refresh();
                     continue;
                 }
+                while (painter.Drawing)
+                {
+                    await Task.Delay(1000);
+                }
+
                 await Task.Delay(1000);
                 // 1. Find the piece that needs to move on the CURRENT board
                 Piece visualPiece = gameData.Board[move.StartRow, move.StartCol];
-
                 if (visualPiece != null)
                 {
                     // 2. Visually glide it across the screen to the target
