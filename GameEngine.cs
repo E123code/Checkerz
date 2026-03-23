@@ -55,7 +55,13 @@ namespace CheckerZ
         {
             this.DoubleBuffered = true;
 
+            comboBox1.Visible = true;
+            GameIcon.Enabled = true;
+            timerlabel.ForeColor = Color.Black;
+
             countDownTimer = 10;
+            timerlabel.Text = Convert.ToString(countDownTimer);
+
             selectedPiece = null;
             bmp = new Bitmap(Width, Height);
             computerTimer = new Timer();
@@ -208,39 +214,12 @@ namespace CheckerZ
             GameIcon.Enabled = false;
             currentState = GameState.PlayerTurn;
 
-            GameTable currentGame = new GameTable {PlayerName =  "Ofek",GameDate =  DateTime.Now, GameOutcome =  null, EndCondition = null };
+            GameTable currentGame = new GameTable { PlayerName = "Ofek", GameDate = DateTime.Now, GameOutcome = null, EndCondition = null };
             DB.GameTables.InsertOnSubmit(currentGame);
             DB.SubmitChanges();
             currentGameID = currentGame.GameID;
             snapshot = new MoveSnapshot(currentGameID, 1, gameData.playerLocations, gameData.computerLocations, 0, 0, 0, 0);
             SaveMove();
-        }
-
-        //uploads the current snapshot to data base
-        private void SaveMove()
-        {
-            GameMoveTable currentMove = new GameMoveTable {
-                GameID = snapshot.GameID,
-                MoveNumber = snapshot.MoveNumber,
-                PlayerLocations = string.Join(",",snapshot.PlayerLocations),
-                ComputerLocations = string.Join(",", snapshot.ComputerLocations),
-                StartRow = snapshot.StartRow,
-                StartCol = snapshot.StartCol,
-                TargetRow = snapshot.TargetRow,
-                TargetCol = snapshot.TargetCol};
-            DB.GameMoveTables.InsertOnSubmit(currentMove);
-            DB.SubmitChanges();
-        }
-
-        private void SaveGame(string outcome,string endCondition)
-        {
-            var game = DB.GameTables.First(Game => Game.GameID == currentGameID);
-            if (game != null)
-            {
-                game.GameOutcome = outcome;
-                game.EndCondition = endCondition;
-            }
-            DB.SubmitChanges();
         }
 
         // logic for combo box options
@@ -337,7 +316,7 @@ namespace CheckerZ
             string outcome;
             string endCondition;
             // Check if player won before computer moves
-            if (gameLogic.CheckWin(out outcome,out endCondition))
+            if (gameLogic.CheckWin(out outcome, out endCondition))
             {
                 SaveGame(outcome, endCondition);
                 PlayerWin();
@@ -349,7 +328,7 @@ namespace CheckerZ
             int startCol;
 
             // Try to execute computer move 
-            if (computerController.ExecuteComputerMove(out movedPiece,out startX, out startY,out startRow,out startCol))
+            if (computerController.ExecuteComputerMove(out movedPiece, out startX, out startY, out startRow, out startCol))
             {
                 // --- PREPARE FOR ANIMATION ---
                 // Force the visual coordinates back to the start so it can glide
@@ -359,7 +338,7 @@ namespace CheckerZ
                 // Run the smooth animation using the new logical coordinates
                 await AnimatePieceAsync(movedPiece, movedPiece.RowIndex, movedPiece.ColIndex);
 
-                snapshot.UpdateSnapshot(gameData.playerLocations,gameData.computerLocations,startRow,startCol,movedPiece.RowIndex,movedPiece.ColIndex);
+                snapshot.UpdateSnapshot(gameData.playerLocations, gameData.computerLocations, startRow, startCol, movedPiece.RowIndex, movedPiece.ColIndex);
                 SaveMove();
             }
             // If ExecuteComputerMove returns false, computer has no legal moves.
@@ -425,7 +404,7 @@ namespace CheckerZ
                 // Run the smooth animation using the new logical coordinates
                 await AnimatePieceAsync(targetPiece, targetPiece.RowIndex, targetPiece.ColIndex);
 
-                snapshot.UpdateSnapshot(gameData.playerLocations,gameData.computerLocations,startRow,startCol,targetPiece.RowIndex,targetPiece.ColIndex);
+                snapshot.UpdateSnapshot(gameData.playerLocations, gameData.computerLocations, startRow, startCol, targetPiece.RowIndex, targetPiece.ColIndex);
                 SaveMove();
                 selectedPiece = null;
                 currentState = GameState.ComputerTurn;
@@ -573,7 +552,7 @@ namespace CheckerZ
             for (int i = 0; i < gameData.playerLocations.Count; i++)
             {
                 if (gameData.playerLocations[i].Row == startRow && gameData.playerLocations[i].Col == startCol)
-                    locationIndex = i; 
+                    locationIndex = i;
             }
 
             // Update the matrix and run the logic!
@@ -639,7 +618,7 @@ namespace CheckerZ
         {
             if (painter.Drawing && e.Button == MouseButtons.Left)
             {
-                painter.DrawOnScreen(this,e);
+                painter.DrawOnScreen(this, e);
             }
         }
 
@@ -658,7 +637,7 @@ namespace CheckerZ
                 painter.Canvas.Dispose();
                 painter.Canvas = null;
             }
-            if(bmp != null)
+            if (bmp != null)
             {
                 bmp.Dispose();
                 painter.Canvas = null;
@@ -666,8 +645,38 @@ namespace CheckerZ
             countdownTimer.Dispose();
             computerTimer.Dispose();
             animationTimer.Dispose();
-            if(painter.Pen != null)
+            if (painter.Pen != null)
                 painter.Pen.Dispose();
+        }
+
+
+        //uploads the current snapshot to data base
+        private void SaveMove()
+        {
+            GameMoveTable currentMove = new GameMoveTable
+            {
+                GameID = snapshot.GameID,
+                MoveNumber = snapshot.MoveNumber,
+                PlayerLocations = string.Join(",", snapshot.PlayerLocations),
+                ComputerLocations = string.Join(",", snapshot.ComputerLocations),
+                StartRow = snapshot.StartRow,
+                StartCol = snapshot.StartCol,
+                TargetRow = snapshot.TargetRow,
+                TargetCol = snapshot.TargetCol
+            };
+            DB.GameMoveTables.InsertOnSubmit(currentMove);
+            DB.SubmitChanges();
+        }
+
+        private void SaveGame(string outcome, string endCondition)
+        {
+            var game = DB.GameTables.First(Game => Game.GameID == currentGameID);
+            if (game != null)
+            {
+                game.GameOutcome = outcome;
+                game.EndCondition = endCondition;
+            }
+            DB.SubmitChanges();
         }
 
         private void RunReplay_Click(object sender, EventArgs e)
@@ -677,8 +686,152 @@ namespace CheckerZ
                 if (replay.ShowDialog() == DialogResult.OK)
                 {
                     currentGameID = replay.selectedID;
+                    ExecuteReplay();
                 }
             }
+        }
+
+        private List<BoardLocation> DecodeLocations(string dbString)
+        {
+            List<BoardLocation> list = new List<BoardLocation>();
+
+            if (string.IsNullOrWhiteSpace(dbString))
+            {
+                return list;
+            }
+
+            // 1. Strip away all the brackets. 
+            // "[6,1],[6,3]" becomes "6,1,6,3"
+            string cleanedString = dbString.Replace("[", "").Replace("]", "");
+
+            // 2. Split what is left by the commas
+            string[] numbers = cleanedString.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+
+            // 3. Loop through the array two steps at a time to grab the Row/Col pairs
+            for (int i = 0; i < numbers.Length; i += 2)
+            {
+                // Ensure we don't go out of bounds if the string is malformed
+                if (i + 1 < numbers.Length)
+                {
+                    int row = int.Parse(numbers[i]);
+                    int col = int.Parse(numbers[i + 1]);
+
+                    // Rebuild the object and add it to the list
+                    list.Add(new BoardLocation(row, col));
+                }
+            }
+
+            return list;
+        }
+
+        private async void ExecuteReplay()
+        {
+            HideUI();
+
+            var moves = from move in DB.GameMoveTables
+                        where move.GameID == currentGameID
+                        orderby move.MoveNumber
+                        select new MoveSnapshot(
+                        move.GameID,
+                        move.MoveNumber,
+                        DecodeLocations(move.PlayerLocations),
+                        DecodeLocations(move.ComputerLocations),
+                        move.StartRow,
+                        move.StartCol,
+                        move.TargetRow,
+                        move.TargetCol);
+            foreach (var move in moves)
+            {
+
+                if (move.MoveNumber == 1)
+                {
+                    UpdateBoardState(move.PlayerLocations, move.ComputerLocations);
+                    this.Refresh();
+                    continue;
+                }
+                await Task.Delay(1000);
+                // 1. Find the piece that needs to move on the CURRENT board
+                Piece visualPiece = gameData.Board[move.StartRow, move.StartCol];
+
+                if (visualPiece != null)
+                {
+                    // 2. Visually glide it across the screen to the target
+                    await AnimatePieceAsync(visualPiece, move.TargetRow, move.TargetCol);
+                }
+
+                // 3. Now that the animation is done, officially update the GameData logic 
+                // using the lists you decoded from the database for this specific move.
+                UpdateBoardState(move.PlayerLocations, move.ComputerLocations);
+
+                // 4. Force a final repaint to clear away any captured pieces
+                this.Refresh();
+            }
+            var game = DB.GameTables.First(g => g.GameID == currentGameID);
+
+            if (game.GameOutcome == GameOutcome.Win.ToString())
+            {
+                await blinkingPieces(gameData.playerLocations);
+                MessageBox.Show($"Player won by {game.EndCondition} ");
+            }
+            else
+            {
+                await blinkingPieces(gameData.computerLocations);
+                MessageBox.Show($"Computer won by {game.EndCondition}");
+            }
+            ShowUI();
+
+            ResetGame();
+            this.Refresh();
+
+        }
+
+        private void UpdateBoardState(List<BoardLocation> newPlayerLocs, List<BoardLocation> newComputerLocs)
+        {
+            // 1. Wipe the logical matrix clean
+            Array.Clear(gameData.Board, 0, gameData.Board.Length);
+
+            // 2. Overwrite the tracking lists in GameData
+            gameData.playerLocations.Clear();
+            gameData.playerLocations.AddRange(newPlayerLocs);
+
+            gameData.computerLocations.Clear();
+            gameData.computerLocations.AddRange(newComputerLocs);
+
+            // 3. Rebuild the Player pieces on the matrix
+            foreach (var loc in gameData.playerLocations)
+            {
+                // Parameters: row, col, isPlayer (true), isReversed (false default based on db save)
+                gameData.Board[loc.Row, loc.Col] = new Piece(loc.Row, loc.Col, true, false);
+            }
+
+            // 4. Rebuild the Computer pieces on the matrix
+            foreach (var loc in gameData.computerLocations)
+            {
+                // Parameters: row, col, isPlayer (false), isReversed (false default)
+                gameData.Board[loc.Row, loc.Col] = new Piece(loc.Row, loc.Col, false, false);
+            }
+        }
+
+        private void HideUI()
+        {
+            RightButton.Visible = false;
+            LeftButton.Visible = false;
+            ReverseLeftButton.Visible = false;
+            ReverseRightButton.Visible = false;
+            comboBox1.Visible = false;
+            timerlabel.Visible = false;
+            GameIcon.Visible = false;
+        }
+        private void ShowUI()
+        {
+            RightButton.Visible = true;
+            LeftButton.Visible = true;
+            ReverseLeftButton.Visible = true;
+            ReverseRightButton.Visible = true;
+
+            comboBox1.Visible = true;
+            timerlabel.Visible = true;
+            GameIcon.Visible = true;
         }
         //private void RunReplay()
         //{

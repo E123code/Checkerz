@@ -23,32 +23,28 @@ namespace CheckerZ
         {
             TblBindingSource.DataSource = dataContext.GameTables;
             TblBindingNavigator.BindingSource = TblBindingSource;
-            ReplayView.DataSource = TblBindingNavigator;
+            ReplayView.DataSource = TblBindingSource;
 
             DataGridViewCheckBoxColumn radioColumn = new DataGridViewCheckBoxColumn();
-            radioColumn.Name = "SelectRadio";
-            //radioColumn.HeaderText = "בחירה";
+            radioColumn.Name = "Select Replay";
             radioColumn.Width = 50;
-            // ביטול ה-ThreeState כדי שיהיה רק "V" או כלום
+
             radioColumn.ThreeState = false;
             ReplayView.Columns.Insert(0, radioColumn);
         }
 
         private void ReplayView_CellContentClick(object sender, DataGridViewCellEventArgs e)
         {
-            // בדיקה שלחצנו על עמודת הבחירה ולא על הכותרת
-            if (e.ColumnIndex == ReplayView.Columns["SelectRadio"].Index && e.RowIndex >= 0)
+            if (e.ColumnIndex == ReplayView.Columns["Select Replay"].Index && e.RowIndex >= 0)
             {
-                // 1. נקה את כל הסימונים הקיימים בטבלה
+
                 foreach (DataGridViewRow row in ReplayView.Rows)
                 {
-                    row.Cells["SelectRadio"].Value = false;
+                    row.Cells["Select Replay"].Value = false;
                 }
 
-                // 2. סמן רק את השורה שנלחצה כרגע
-                ReplayView.Rows[e.RowIndex].Cells["SelectRadio"].Value = true;
+                ReplayView.Rows[e.RowIndex].Cells["Select Replay"].Value = true;
 
-                // 3. עדכון מיידי של ה-Grid כדי שהמשתמש יראה את השינוי
                 ReplayView.EndEdit();
             }
         }
@@ -57,9 +53,9 @@ namespace CheckerZ
         {
             foreach (DataGridViewRow row in ReplayView.Rows)
             {
-                if (Convert.ToBoolean(row.Cells["SelectRadio"].Value) == true)
+                if (Convert.ToBoolean(row.Cells["Select Replay"].Value) == true)
                 {
-                    selectedID = Convert.ToInt32(row.Cells["Id"].Value);
+                    selectedID = Convert.ToInt32(row.Cells["GameID"].Value);
                     this.DialogResult = DialogResult.OK;
                     this.Close();
                     return;

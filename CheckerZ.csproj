@@ -138,10 +138,10 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="GamesDataBase.mdf">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="GamesDataBase_log.ldf">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <DependentUpon>GamesDataBase.mdf</DependentUpon>
     </Content>
   </ItemGroup>
