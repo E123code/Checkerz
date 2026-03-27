@@ -50,11 +50,6 @@ namespace CheckerZ
 
         public void MoveUpRight(bool capture)
         {
-            //for (int i = 0; i < MOVEOFFSET; i++)
-            //{
-            //    this.X += 1;
-            //    this.Y -= 1;
-            //}
             if (capture)
             {
                 this.X += MOVEOFFSET * 2;
@@ -69,11 +64,6 @@ namespace CheckerZ
 
         public void MoveUpLeft(bool capture)
         {
-            //for (int i = 0; i < MOVEOFFSET; i++)
-            //{
-            //    this.X -= 1;
-            //    this.Y -= 1;
-            //}
             if (capture)
             {
                 this.X -= MOVEOFFSET * 2;
@@ -89,11 +79,6 @@ namespace CheckerZ
 
         public void MoveDownRight(bool capture)
         {
-            //for(int i = 0; i < MOVEOFFSET; i++)
-            //{
-            //    this.X += 1;
-            //    this.Y += 1;
-            //}
             if (capture)
             {
                 this.X += MOVEOFFSET * 2;
@@ -108,11 +93,6 @@ namespace CheckerZ
 
         public void MoveDownLeft(bool capture)
         {
-            //for (int i = 0; i < MOVEOFFSET; i++)
-            //{
-            //    this.X -= 1;
-            //    this.Y += 1;
-            //}
 
             if (capture)
             {

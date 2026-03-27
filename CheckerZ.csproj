@@ -48,9 +48,36 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="System" />
+    <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>packages\Newtonsoft.Json.13.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="Newtonsoft.Json.Bson, Version=1.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>packages\Newtonsoft.Json.Bson.1.0.2\lib\net45\Newtonsoft.Json.Bson.dll</HintPath>
+    </Reference>
+    <Reference Include="System">
+      <HintPath>..\..\..\..\..\..\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\System.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Buffers, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>packages\System.Buffers.4.5.1\lib\net461\System.Buffers.dll</HintPath>
+    </Reference>
     <Reference Include="System.Core" />
     <Reference Include="System.Data.Linq" />
+    <Reference Include="System.Memory, Version=4.0.1.2, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>packages\System.Memory.4.5.5\lib\net461\System.Memory.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Net.Http.Formatting, Version=6.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>packages\Microsoft.AspNet.WebApi.Client.6.0.0\lib\net45\System.Net.Http.Formatting.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Numerics" />
+    <Reference Include="System.Numerics.Vectors, Version=4.1.4.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>packages\System.Numerics.Vectors.4.5.0\lib\net46\System.Numerics.Vectors.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Runtime.CompilerServices.Unsafe, Version=4.0.4.1, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>packages\System.Runtime.CompilerServices.Unsafe.4.5.3\lib\net461\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Threading.Tasks.Extensions, Version=4.2.0.1, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>packages\System.Threading.Tasks.Extensions.4.5.4\lib\net461\System.Threading.Tasks.Extensions.dll</HintPath>
+    </Reference>
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -62,41 +89,61 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Controller.cs" />
-    <Compile Include="BoardGrid.cs" />
-    <Compile Include="ComputerController.cs" />
-    <Compile Include="EndCondition.cs" />
-    <Compile Include="GameData.cs" />
-    <Compile Include="GameLogic.cs" />
-    <Compile Include="GameOutcome.cs" />
-    <Compile Include="MoveSnapshot.cs" />
-    <Compile Include="Painter.cs" />
-    <Compile Include="Piece.cs" />
-    <Compile Include="GameEngine.cs">
+    <Compile Include="Logic\Controllers\Controller.cs" />
+    <Compile Include="Objects\GameSession.cs" />
+    <Compile Include="Utils\BoardGrid.cs" />
+    <Compile Include="Logic\Controllers\ComputerController.cs" />
+    <Compile Include="Enums\EndCondition.cs" />
+    <Compile Include="Forms\ReplayMenu.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="GameEngine.Designer.cs">
+    <Compile Include="Forms\ReplayMenu.Designer.cs">
+      <DependentUpon>ReplayMenu.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\SelectPlayer.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\SelectPlayer.Designer.cs">
+      <DependentUpon>SelectPlayer.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\StartScreen.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\StartScreen.Designer.cs">
+      <DependentUpon>StartScreen.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Data\GameData.cs" />
+    <Compile Include="Logic\GameLogic.cs" />
+    <Compile Include="Enums\GameOutcome.cs" />
+    <Compile Include="Objects\MoveSnapshot.cs" />
+    <Compile Include="Utils\Painter.cs" />
+    <Compile Include="Objects\Piece.cs" />
+    <Compile Include="Forms\GameEngine.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\GameEngine.Designer.cs">
       <DependentUpon>GameEngine.cs</DependentUpon>
     </Compile>
-    <Compile Include="BoardLocation.cs" />
-    <Compile Include="PlayerController.cs" />
+    <Compile Include="Objects\BoardLocation.cs" />
+    <Compile Include="Objects\Player.cs" />
+    <Compile Include="Logic\Controllers\PlayerController.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="ReplayData.cs">
+    <Compile Include="Data\DB\ReplayData.cs">
       <DependentUpon>ReplayData.dbml</DependentUpon>
     </Compile>
-    <Compile Include="ReplayData.designer.cs">
+    <Compile Include="Data\DB\ReplayData.designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>ReplayData.dbml</DependentUpon>
     </Compile>
-    <Compile Include="ReplayMenu.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="ReplayMenu.Designer.cs">
+    <EmbeddedResource Include="Forms\ReplayMenu.resx">
       <DependentUpon>ReplayMenu.cs</DependentUpon>
-    </Compile>
-    <EmbeddedResource Include="GameEngine.resx">
+    </EmbeddedResource>
+    <EmbeddedResource Include="Forms\StartScreen.resx">
+      <DependentUpon>StartScreen.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Forms\GameEngine.resx">
       <DependentUpon>GameEngine.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
@@ -109,9 +156,7 @@
       <DependentUpon>Resources.resx</DependentUpon>
       <DesignTime>True</DesignTime>
     </Compile>
-    <EmbeddedResource Include="ReplayMenu.resx">
-      <DependentUpon>ReplayMenu.cs</DependentUpon>
-    </EmbeddedResource>
+    <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
@@ -121,12 +166,12 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
-    <None Include="ReplayData.dbml">
+    <None Include="Data\DB\ReplayData.dbml">
       <Generator>MSLinqToSQLGenerator</Generator>
       <LastGenOutput>ReplayData.designer.cs</LastGenOutput>
       <SubType>Designer</SubType>
     </None>
-    <None Include="ReplayData.dbml.layout">
+    <None Include="Data\DB\ReplayData.dbml.layout">
       <DependentUpon>ReplayData.dbml</DependentUpon>
     </None>
   </ItemGroup>
@@ -137,10 +182,10 @@
     <None Include="Pictures\CheckerZ.png" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="GamesDataBase.mdf">
+    <Content Include="Data\DB\GamesDataBase.mdf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="GamesDataBase_log.ldf">
+    <Content Include="Data\DB\GamesDataBase_log.ldf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <DependentUpon>GamesDataBase.mdf</DependentUpon>
     </Content>

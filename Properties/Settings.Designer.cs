@@ -26,8 +26,8 @@ namespace CheckerZ.Properties {
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.SpecialSettingAttribute(global::System.Configuration.SpecialSetting.ConnectionString)]
-        [global::System.Configuration.DefaultSettingValueAttribute("Data Source=(LocalDB)\\MSSQLLocalDB;AttachDbFilename=|DataDirectory|\\GamesDataBase" +
-            ".mdf;Integrated Security=True")]
+        [global::System.Configuration.DefaultSettingValueAttribute("Data Source=(LocalDB)\\MSSQLLocalDB;AttachDbFilename=|DataDirectory|\\Data\\DB\\Games" +
+            "DataBase.mdf;Integrated Security=True")]
         public string GamesDataBaseConnectionString {
             get {
                 return ((string)(this["GamesDataBaseConnectionString"]));

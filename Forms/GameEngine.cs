@@ -1,4 +1,5 @@
-﻿using System;
+﻿using CheckerZ.Data.DB;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
@@ -527,6 +528,7 @@ namespace CheckerZ
 
         private async void ReverseLeftClick(object sender, EventArgs e)
         {
+
             if (painter.Drawing)
             {
                 return;
@@ -836,11 +838,5 @@ namespace CheckerZ
             timerlabel.Visible = true;
             GameIcon.Visible = true;
         }
-        //private void RunReplay()
-        //{
-        //    var game = DB.GameTables.First(replay=>replay.GameID == currentGameID);
-        //    List<MoveSnapshot> moveSnapshots = new List<MoveSnapshot>();
-
-        //}
     }
 }

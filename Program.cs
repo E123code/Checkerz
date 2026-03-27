@@ -16,7 +16,20 @@ namespace CheckerZ
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new GameEngine());
+            //Application.Run(new GameEngine());
+
+            // 1. Open the Start Screen as a temporary dialog
+            using (StartScreen startScreen = new StartScreen())
+            {
+                // 2. Wait for it to close. Did they successfully join?
+                if (startScreen.ShowDialog() == DialogResult.OK)
+                { 
+
+                    // 4. Launch the actual game, passing the ID into the constructor!
+                    Application.Run(new GameEngine());
+                }
+                // If they pressed 'X', it skips the if-statement and the app just exits cleanly!
+            }
         }
     }
 }

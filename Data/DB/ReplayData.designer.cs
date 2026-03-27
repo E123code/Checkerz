@@ -9,7 +9,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace CheckerZ
+namespace CheckerZ.Data.DB
 {
 	using System.Data.Linq;
 	using System.Data.Linq.Mapping;
