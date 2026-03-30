@@ -33,7 +33,7 @@
             this.CodeText = new System.Windows.Forms.TextBox();
             this.contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.label1 = new System.Windows.Forms.Label();
-            this.button1 = new System.Windows.Forms.Button();
+            this.StartSession = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // Title
@@ -68,21 +68,22 @@
             this.label1.TabIndex = 3;
             this.label1.Text = "Enter Session ID";
             // 
-            // button1
+            // StartSession
             // 
-            this.button1.Location = new System.Drawing.Point(339, 282);
-            this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(108, 66);
-            this.button1.TabIndex = 4;
-            this.button1.Text = "Start Session";
-            this.button1.UseVisualStyleBackColor = true;
+            this.StartSession.Location = new System.Drawing.Point(339, 282);
+            this.StartSession.Name = "StartSession";
+            this.StartSession.Size = new System.Drawing.Size(108, 66);
+            this.StartSession.TabIndex = 4;
+            this.StartSession.Text = "Start Session";
+            this.StartSession.UseVisualStyleBackColor = true;
+            this.StartSession.Click += new System.EventHandler(this.StartSession_Click);
             // 
             // StartScreen
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(800, 450);
-            this.Controls.Add(this.button1);
+            this.Controls.Add(this.StartSession);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.CodeText);
             this.Controls.Add(this.Title);
@@ -100,6 +101,6 @@
         private System.Windows.Forms.TextBox CodeText;
         private System.Windows.Forms.ContextMenuStrip contextMenuStrip1;
         private System.Windows.Forms.Label label1;
-        private System.Windows.Forms.Button button1;
+        private System.Windows.Forms.Button StartSession;
     }
 }

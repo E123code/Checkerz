@@ -89,8 +89,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Client-Server\ApiManager.cs" />
     <Compile Include="Logic\Controllers\Controller.cs" />
-    <Compile Include="Objects\GameSession.cs" />
+    <Compile Include="Client-Server\GameSession.cs" />
     <Compile Include="Utils\BoardGrid.cs" />
     <Compile Include="Logic\Controllers\ComputerController.cs" />
     <Compile Include="Enums\EndCondition.cs" />
@@ -125,7 +126,7 @@
       <DependentUpon>GameEngine.cs</DependentUpon>
     </Compile>
     <Compile Include="Objects\BoardLocation.cs" />
-    <Compile Include="Objects\Player.cs" />
+    <Compile Include="Client-Server\Player.cs" />
     <Compile Include="Logic\Controllers\PlayerController.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -139,6 +140,9 @@
     </Compile>
     <EmbeddedResource Include="Forms\ReplayMenu.resx">
       <DependentUpon>ReplayMenu.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Forms\SelectPlayer.resx">
+      <DependentUpon>SelectPlayer.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Forms\StartScreen.resx">
       <DependentUpon>StartScreen.cs</DependentUpon>

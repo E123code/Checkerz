@@ -1,6 +1,7 @@
 ﻿using CheckerZ.Data.DB;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
 using System.Threading.Tasks;
@@ -30,6 +31,8 @@ namespace CheckerZ
 
         private MoveSnapshot snapshot;
         private int currentGameID;
+
+        private Stopwatch stopwatch = new Stopwatch();
 
         // intialzing the game
         public GameEngine()
@@ -201,6 +204,19 @@ namespace CheckerZ
                 MessageBox.Show("Turn off drawing mode to start game!");
                 return;
             }
+            using (SelectPlayer selectPlayer = new SelectPlayer())
+            {
+                if (selectPlayer.ShowDialog() == DialogResult.OK)
+                {
+                    GameTable currentGame = new GameTable { PlayerID = selectPlayer.selectedID, PlayerName = selectPlayer.selectedName, GameDate = DateTime.Now, GameOutcome = null, EndCondition = null };
+                    DB.GameTables.InsertOnSubmit(currentGame);
+                    DB.SubmitChanges();
+                    currentGameID = currentGame.GameID;
+                    snapshot = new MoveSnapshot(currentGameID, 1, gameData.playerLocations, gameData.computerLocations, 0, 0, 0, 0);
+                    SaveMove();
+                }
+            }
+
             MessageBox.Show("Game Starts!");
             computerTimer.Interval = 500; // 1 second delay
             computerTimer.Tick += ComputerTimer_Tick;
@@ -214,13 +230,13 @@ namespace CheckerZ
             comboBox1.Visible = false;
             GameIcon.Enabled = false;
             currentState = GameState.PlayerTurn;
-
-            GameTable currentGame = new GameTable { PlayerName = "Ofek", GameDate = DateTime.Now, GameOutcome = null, EndCondition = null };
-            DB.GameTables.InsertOnSubmit(currentGame);
-            DB.SubmitChanges();
-            currentGameID = currentGame.GameID;
-            snapshot = new MoveSnapshot(currentGameID, 1, gameData.playerLocations, gameData.computerLocations, 0, 0, 0, 0);
-            SaveMove();
+            stopwatch.Start();
+            //GameTable currentGame = new GameTable { PlayerName = "Ofek", GameDate = DateTime.Now, GameOutcome = null, EndCondition = null };
+            //DB.GameTables.InsertOnSubmit(currentGame);
+            //DB.SubmitChanges();
+            //currentGameID = currentGame.GameID;
+            //snapshot = new MoveSnapshot(currentGameID, 1, gameData.playerLocations, gameData.computerLocations, 0, 0, 0, 0);
+            //SaveMove();
         }
 
         // logic for combo box options
@@ -289,6 +305,7 @@ namespace CheckerZ
         private async void ComputerWin()
         {
             countdownTimer.Stop();
+            stopwatch.Stop();
             await blinkingPieces(gameData.computerLocations);
             MessageBox.Show("Computer Won !");
             MessageBox.Show("Thank you for playing my game!");
@@ -301,6 +318,7 @@ namespace CheckerZ
         private async void PlayerWin()
         {
             countdownTimer.Stop();
+            stopwatch.Stop();
             await blinkingPieces(gameData.playerLocations);
             MessageBox.Show("Player Won !");
             MessageBox.Show("Thank you for playing my game!");
@@ -670,7 +688,7 @@ namespace CheckerZ
             DB.SubmitChanges();
         }
 
-        private void SaveGame(string outcome, string endCondition)
+        private async void SaveGame(string outcome, string endCondition)
         {
             var game = DB.GameTables.First(Game => Game.GameID == currentGameID);
             if (game != null)
@@ -679,6 +697,8 @@ namespace CheckerZ
                 game.EndCondition = endCondition;
             }
             DB.SubmitChanges();
+            var savedGame = new { PlayerID = game.PlayerID, PlayerName = game.PlayerName, GameDate = game.GameDate, GameOutcome = game.GameOutcome, Duration = (int)stopwatch.Elapsed.TotalSeconds };
+            await ApiManager.SaveGameToServer(savedGame);
         }
 
         private void RunReplay_Click(object sender, EventArgs e)
@@ -837,6 +857,11 @@ namespace CheckerZ
             comboBox1.Visible = true;
             timerlabel.Visible = true;
             GameIcon.Visible = true;
+        }
+
+        private void GameDuration_Tick(object sender, EventArgs e)
+        {
+
         }
     }
 }

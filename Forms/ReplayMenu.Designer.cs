@@ -55,7 +55,7 @@
             // 
             this.ReplayView.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
             this.ReplayView.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            this.ReplayView.Location = new System.Drawing.Point(2, 47);
+            this.ReplayView.Location = new System.Drawing.Point(2, 65);
             this.ReplayView.Name = "ReplayView";
             this.ReplayView.Size = new System.Drawing.Size(917, 279);
             this.ReplayView.TabIndex = 0;
@@ -177,7 +177,7 @@
             // 
             // StartReplay
             // 
-            this.StartReplay.Location = new System.Drawing.Point(309, 361);
+            this.StartReplay.Location = new System.Drawing.Point(383, 366);
             this.StartReplay.Name = "StartReplay";
             this.StartReplay.Size = new System.Drawing.Size(202, 62);
             this.StartReplay.TabIndex = 2;

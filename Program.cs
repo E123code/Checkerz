@@ -27,6 +27,7 @@ namespace CheckerZ
 
                     // 4. Launch the actual game, passing the ID into the constructor!
                     Application.Run(new GameEngine());
+                    startScreen.Close();
                 }
                 // If they pressed 'X', it skips the if-statement and the app just exits cleanly!
             }

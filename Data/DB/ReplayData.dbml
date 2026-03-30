@@ -1,5 +1,16 @@
 ﻿<?xml version="1.0" encoding="utf-8"?><Database Name="GamesDataBase" Class="ReplayDataDataContext" xmlns="http://schemas.microsoft.com/linqtosql/dbml/2007">
-  <Connection Mode="AppSettings" ConnectionString="Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename=|DataDirectory|\GamesDataBase.mdf;Integrated Security=True" SettingsObjectName="CheckerZ.Properties.Settings" SettingsPropertyName="GamesDataBaseConnectionString" Provider="System.Data.SqlClient" />
+  <Connection Mode="AppSettings" ConnectionString="Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename=|DataDirectory|\Data\DB\GamesDataBase.mdf;Integrated Security=True" SettingsObjectName="CheckerZ.Properties.Settings" SettingsPropertyName="GamesDataBaseConnectionString" Provider="System.Data.SqlClient" />
+  <Table Name="dbo.GameTable" Member="GameTables">
+    <Type Name="GameTable">
+      <Column Name="GameID" Type="System.Int32" DbType="Int NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
+      <Column Name="PlayerID" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="PlayerName" Type="System.String" DbType="VarChar(MAX) NOT NULL" CanBeNull="false" />
+      <Column Name="GameDate" Type="System.DateTime" DbType="DateTime NOT NULL" CanBeNull="false" />
+      <Column Name="GameOutcome" Type="System.String" DbType="VarChar(MAX)" CanBeNull="true" />
+      <Column Name="EndCondition" Type="System.String" DbType="VarChar(MAX)" CanBeNull="true" />
+      <Association Name="GameTable_GameMoveTable" Member="GameMoveTables" ThisKey="GameID" OtherKey="GameID" Type="GameMoveTable" />
+    </Type>
+  </Table>
   <Table Name="dbo.GameMoveTable" Member="GameMoveTables">
     <Type Name="GameMoveTable">
       <Column Name="MoveID" Type="System.Int32" DbType="Int NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
@@ -11,17 +22,7 @@
       <Column Name="StartCol" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
       <Column Name="TargetRow" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
       <Column Name="TargetCol" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
-      <Association Name="GameTable_GameMoveTable" Member="GameTable" ThisKey="GameID" OtherKey="GameID" Type="GameTable" IsForeignKey="true" />
-    </Type>
-  </Table>
-  <Table Name="dbo.GameTable" Member="GameTables">
-    <Type Name="GameTable">
-      <Column Name="GameID" Type="System.Int32" DbType="Int NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
-      <Column Name="PlayerName" Type="System.String" DbType="VarChar(MAX) NOT NULL" CanBeNull="false" />
-      <Column Name="GameDate" Type="System.DateTime" DbType="DateTime NOT NULL" CanBeNull="false" />
-      <Column Name="GameOutcome" Type="System.String" DbType="VarChar(MAX)" CanBeNull="true" />
-      <Column Name="EndCondition" Type="System.String" DbType="VarChar(MAX)" CanBeNull="true" />
-      <Association Name="GameTable_GameMoveTable" Member="GameMoveTables" ThisKey="GameID" OtherKey="GameID" Type="GameMoveTable" />
+      <Association Name="GameTable_GameMoveTable" Member="GameTable" ThisKey="GameID" OtherKey="GameID" Type="GameTable" IsForeignKey="true" DeleteRule="CASCADE" DeleteOnNull="true" />
     </Type>
   </Table>
 </Database>

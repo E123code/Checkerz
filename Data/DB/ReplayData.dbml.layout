@@ -2,23 +2,23 @@
 <ordesignerObjectsDiagram dslVersion="1.0.0.0" absoluteBounds="0, 0, 11, 8.5" name="ReplayData">
   <DataContextMoniker Name="/ReplayDataDataContext" />
   <nestedChildShapes>
-    <classShape Id="a45cdc5b-beab-4e30-aeb4-79272628036a" absoluteBounds="6.25, 1.125, 2, 2.5401025390625">
-      <DataClassMoniker Name="/ReplayDataDataContext/GameMoveTable" />
-      <nestedChildShapes>
-        <elementListCompartment Id="67f23c35-58a1-4bc1-add9-2c6cea90016a" absoluteBounds="6.265, 1.585, 1.9700000000000002, 1.9801025390625" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
-      </nestedChildShapes>
-    </classShape>
-    <classShape Id="69e820d5-c661-4fef-bf2d-2f2a049a3de8" absoluteBounds="1.125, 1.5, 2.5, 1.7708968098958331">
+    <classShape Id="a4e2c45d-1e13-4a55-9528-cbbfdd87cee4" absoluteBounds="3.125, 1.5, 2, 1.9631982421875">
       <DataClassMoniker Name="/ReplayDataDataContext/GameTable" />
       <nestedChildShapes>
-        <elementListCompartment Id="b357da16-5f3a-4d5e-8624-d77581f738cf" absoluteBounds="1.14, 1.96, 2.4699999999999998, 1.2108968098958333" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
+        <elementListCompartment Id="d4596739-3994-4997-9a26-4ece963759f5" absoluteBounds="3.14, 1.96, 1.9700000000000002, 1.4031982421875" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
       </nestedChildShapes>
     </classShape>
-    <associationConnector edgePoints="[(3.625 : 2.38544840494792); (6.25 : 2.38544840494792)]" fixedFrom="Algorithm" fixedTo="Algorithm">
+    <classShape Id="110f4d22-399a-4773-94c5-7a8900e25fa8" absoluteBounds="6.625, 1.375, 2, 2.5401025390625">
+      <DataClassMoniker Name="/ReplayDataDataContext/GameMoveTable" />
+      <nestedChildShapes>
+        <elementListCompartment Id="a111292a-1bf4-42df-9f94-0371262ab901" absoluteBounds="6.6400000000000006, 1.835, 1.9700000000000002, 1.9801025390625" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
+      </nestedChildShapes>
+    </classShape>
+    <associationConnector edgePoints="[(5.125 : 2.48159912109375); (6.625 : 2.48159912109375)]" fixedFrom="Algorithm" fixedTo="Algorithm">
       <AssociationMoniker Name="/ReplayDataDataContext/GameTable/GameTable_GameMoveTable" />
       <nodes>
-        <classShapeMoniker Id="69e820d5-c661-4fef-bf2d-2f2a049a3de8" />
-        <classShapeMoniker Id="a45cdc5b-beab-4e30-aeb4-79272628036a" />
+        <classShapeMoniker Id="a4e2c45d-1e13-4a55-9528-cbbfdd87cee4" />
+        <classShapeMoniker Id="110f4d22-399a-4773-94c5-7a8900e25fa8" />
       </nodes>
     </associationConnector>
   </nestedChildShapes>

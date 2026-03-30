@@ -30,12 +30,12 @@ namespace CheckerZ.Data.DB
 		
     #region Extensibility Method Definitions
     partial void OnCreated();
-    partial void InsertGameMoveTable(GameMoveTable instance);
-    partial void UpdateGameMoveTable(GameMoveTable instance);
-    partial void DeleteGameMoveTable(GameMoveTable instance);
     partial void InsertGameTable(GameTable instance);
     partial void UpdateGameTable(GameTable instance);
     partial void DeleteGameTable(GameTable instance);
+    partial void InsertGameMoveTable(GameMoveTable instance);
+    partial void UpdateGameMoveTable(GameMoveTable instance);
+    partial void DeleteGameMoveTable(GameMoveTable instance);
     #endregion
 		
 		public ReplayDataDataContext() : 
@@ -68,6 +68,14 @@ namespace CheckerZ.Data.DB
 			OnCreated();
 		}
 		
+		public System.Data.Linq.Table<GameTable> GameTables
+		{
+			get
+			{
+				return this.GetTable<GameTable>();
+			}
+		}
+		
 		public System.Data.Linq.Table<GameMoveTable> GameMoveTables
 		{
 			get
@@ -75,13 +83,215 @@ namespace CheckerZ.Data.DB
 				return this.GetTable<GameMoveTable>();
 			}
 		}
+	}
+	
+	[global::System.Data.Linq.Mapping.TableAttribute(Name="dbo.GameTable")]
+	public partial class GameTable : INotifyPropertyChanging, INotifyPropertyChanged
+	{
 		
-		public System.Data.Linq.Table<GameTable> GameTables
+		private static PropertyChangingEventArgs emptyChangingEventArgs = new PropertyChangingEventArgs(String.Empty);
+		
+		private int _GameID;
+		
+		private int _PlayerID;
+		
+		private string _PlayerName;
+		
+		private System.DateTime _GameDate;
+		
+		private string _GameOutcome;
+		
+		private string _EndCondition;
+		
+		private EntitySet<GameMoveTable> _GameMoveTables;
+		
+    #region Extensibility Method Definitions
+    partial void OnLoaded();
+    partial void OnValidate(System.Data.Linq.ChangeAction action);
+    partial void OnCreated();
+    partial void OnGameIDChanging(int value);
+    partial void OnGameIDChanged();
+    partial void OnPlayerIDChanging(int value);
+    partial void OnPlayerIDChanged();
+    partial void OnPlayerNameChanging(string value);
+    partial void OnPlayerNameChanged();
+    partial void OnGameDateChanging(System.DateTime value);
+    partial void OnGameDateChanged();
+    partial void OnGameOutcomeChanging(string value);
+    partial void OnGameOutcomeChanged();
+    partial void OnEndConditionChanging(string value);
+    partial void OnEndConditionChanged();
+    #endregion
+		
+		public GameTable()
+		{
+			this._GameMoveTables = new EntitySet<GameMoveTable>(new Action<GameMoveTable>(this.attach_GameMoveTables), new Action<GameMoveTable>(this.detach_GameMoveTables));
+			OnCreated();
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_GameID", AutoSync=AutoSync.OnInsert, DbType="Int NOT NULL IDENTITY", IsPrimaryKey=true, IsDbGenerated=true)]
+		public int GameID
 		{
 			get
 			{
-				return this.GetTable<GameTable>();
+				return this._GameID;
 			}
+			set
+			{
+				if ((this._GameID != value))
+				{
+					this.OnGameIDChanging(value);
+					this.SendPropertyChanging();
+					this._GameID = value;
+					this.SendPropertyChanged("GameID");
+					this.OnGameIDChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_PlayerID", DbType="Int NOT NULL")]
+		public int PlayerID
+		{
+			get
+			{
+				return this._PlayerID;
+			}
+			set
+			{
+				if ((this._PlayerID != value))
+				{
+					this.OnPlayerIDChanging(value);
+					this.SendPropertyChanging();
+					this._PlayerID = value;
+					this.SendPropertyChanged("PlayerID");
+					this.OnPlayerIDChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_PlayerName", DbType="VarChar(MAX) NOT NULL", CanBeNull=false)]
+		public string PlayerName
+		{
+			get
+			{
+				return this._PlayerName;
+			}
+			set
+			{
+				if ((this._PlayerName != value))
+				{
+					this.OnPlayerNameChanging(value);
+					this.SendPropertyChanging();
+					this._PlayerName = value;
+					this.SendPropertyChanged("PlayerName");
+					this.OnPlayerNameChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_GameDate", DbType="DateTime NOT NULL")]
+		public System.DateTime GameDate
+		{
+			get
+			{
+				return this._GameDate;
+			}
+			set
+			{
+				if ((this._GameDate != value))
+				{
+					this.OnGameDateChanging(value);
+					this.SendPropertyChanging();
+					this._GameDate = value;
+					this.SendPropertyChanged("GameDate");
+					this.OnGameDateChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_GameOutcome", DbType="VarChar(MAX)")]
+		public string GameOutcome
+		{
+			get
+			{
+				return this._GameOutcome;
+			}
+			set
+			{
+				if ((this._GameOutcome != value))
+				{
+					this.OnGameOutcomeChanging(value);
+					this.SendPropertyChanging();
+					this._GameOutcome = value;
+					this.SendPropertyChanged("GameOutcome");
+					this.OnGameOutcomeChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_EndCondition", DbType="VarChar(MAX)")]
+		public string EndCondition
+		{
+			get
+			{
+				return this._EndCondition;
+			}
+			set
+			{
+				if ((this._EndCondition != value))
+				{
+					this.OnEndConditionChanging(value);
+					this.SendPropertyChanging();
+					this._EndCondition = value;
+					this.SendPropertyChanged("EndCondition");
+					this.OnEndConditionChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.AssociationAttribute(Name="GameTable_GameMoveTable", Storage="_GameMoveTables", ThisKey="GameID", OtherKey="GameID")]
+		public EntitySet<GameMoveTable> GameMoveTables
+		{
+			get
+			{
+				return this._GameMoveTables;
+			}
+			set
+			{
+				this._GameMoveTables.Assign(value);
+			}
+		}
+		
+		public event PropertyChangingEventHandler PropertyChanging;
+		
+		public event PropertyChangedEventHandler PropertyChanged;
+		
+		protected virtual void SendPropertyChanging()
+		{
+			if ((this.PropertyChanging != null))
+			{
+				this.PropertyChanging(this, emptyChangingEventArgs);
+			}
+		}
+		
+		protected virtual void SendPropertyChanged(String propertyName)
+		{
+			if ((this.PropertyChanged != null))
+			{
+				this.PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
+			}
+		}
+		
+		private void attach_GameMoveTables(GameMoveTable entity)
+		{
+			this.SendPropertyChanging();
+			entity.GameTable = this;
+		}
+		
+		private void detach_GameMoveTables(GameMoveTable entity)
+		{
+			this.SendPropertyChanging();
+			entity.GameTable = null;
 		}
 	}
 	
@@ -325,7 +535,7 @@ namespace CheckerZ.Data.DB
 			}
 		}
 		
-		[global::System.Data.Linq.Mapping.AssociationAttribute(Name="GameTable_GameMoveTable", Storage="_GameTable", ThisKey="GameID", OtherKey="GameID", IsForeignKey=true)]
+		[global::System.Data.Linq.Mapping.AssociationAttribute(Name="GameTable_GameMoveTable", Storage="_GameTable", ThisKey="GameID", OtherKey="GameID", IsForeignKey=true, DeleteOnNull=true, DeleteRule="CASCADE")]
 		public GameTable GameTable
 		{
 			get
@@ -377,192 +587,6 @@ namespace CheckerZ.Data.DB
 			{
 				this.PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
 			}
-		}
-	}
-	
-	[global::System.Data.Linq.Mapping.TableAttribute(Name="dbo.GameTable")]
-	public partial class GameTable : INotifyPropertyChanging, INotifyPropertyChanged
-	{
-		
-		private static PropertyChangingEventArgs emptyChangingEventArgs = new PropertyChangingEventArgs(String.Empty);
-		
-		private int _GameID;
-		
-		private string _PlayerName;
-		
-		private System.DateTime _GameDate;
-		
-		private string _GameOutcome;
-		
-		private string _EndCondition;
-		
-		private EntitySet<GameMoveTable> _GameMoveTables;
-		
-    #region Extensibility Method Definitions
-    partial void OnLoaded();
-    partial void OnValidate(System.Data.Linq.ChangeAction action);
-    partial void OnCreated();
-    partial void OnGameIDChanging(int value);
-    partial void OnGameIDChanged();
-    partial void OnPlayerNameChanging(string value);
-    partial void OnPlayerNameChanged();
-    partial void OnGameDateChanging(System.DateTime value);
-    partial void OnGameDateChanged();
-    partial void OnGameOutcomeChanging(string value);
-    partial void OnGameOutcomeChanged();
-    partial void OnEndConditionChanging(string value);
-    partial void OnEndConditionChanged();
-    #endregion
-		
-		public GameTable()
-		{
-			this._GameMoveTables = new EntitySet<GameMoveTable>(new Action<GameMoveTable>(this.attach_GameMoveTables), new Action<GameMoveTable>(this.detach_GameMoveTables));
-			OnCreated();
-		}
-		
-		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_GameID", AutoSync=AutoSync.OnInsert, DbType="Int NOT NULL IDENTITY", IsPrimaryKey=true, IsDbGenerated=true)]
-		public int GameID
-		{
-			get
-			{
-				return this._GameID;
-			}
-			set
-			{
-				if ((this._GameID != value))
-				{
-					this.OnGameIDChanging(value);
-					this.SendPropertyChanging();
-					this._GameID = value;
-					this.SendPropertyChanged("GameID");
-					this.OnGameIDChanged();
-				}
-			}
-		}
-		
-		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_PlayerName", DbType="VarChar(MAX) NOT NULL", CanBeNull=false)]
-		public string PlayerName
-		{
-			get
-			{
-				return this._PlayerName;
-			}
-			set
-			{
-				if ((this._PlayerName != value))
-				{
-					this.OnPlayerNameChanging(value);
-					this.SendPropertyChanging();
-					this._PlayerName = value;
-					this.SendPropertyChanged("PlayerName");
-					this.OnPlayerNameChanged();
-				}
-			}
-		}
-		
-		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_GameDate", DbType="DateTime NOT NULL")]
-		public System.DateTime GameDate
-		{
-			get
-			{
-				return this._GameDate;
-			}
-			set
-			{
-				if ((this._GameDate != value))
-				{
-					this.OnGameDateChanging(value);
-					this.SendPropertyChanging();
-					this._GameDate = value;
-					this.SendPropertyChanged("GameDate");
-					this.OnGameDateChanged();
-				}
-			}
-		}
-		
-		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_GameOutcome", DbType="VarChar(MAX)")]
-		public string GameOutcome
-		{
-			get
-			{
-				return this._GameOutcome;
-			}
-			set
-			{
-				if ((this._GameOutcome != value))
-				{
-					this.OnGameOutcomeChanging(value);
-					this.SendPropertyChanging();
-					this._GameOutcome = value;
-					this.SendPropertyChanged("GameOutcome");
-					this.OnGameOutcomeChanged();
-				}
-			}
-		}
-		
-		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_EndCondition", DbType="VarChar(MAX)")]
-		public string EndCondition
-		{
-			get
-			{
-				return this._EndCondition;
-			}
-			set
-			{
-				if ((this._EndCondition != value))
-				{
-					this.OnEndConditionChanging(value);
-					this.SendPropertyChanging();
-					this._EndCondition = value;
-					this.SendPropertyChanged("EndCondition");
-					this.OnEndConditionChanged();
-				}
-			}
-		}
-		
-		[global::System.Data.Linq.Mapping.AssociationAttribute(Name="GameTable_GameMoveTable", Storage="_GameMoveTables", ThisKey="GameID", OtherKey="GameID")]
-		public EntitySet<GameMoveTable> GameMoveTables
-		{
-			get
-			{
-				return this._GameMoveTables;
-			}
-			set
-			{
-				this._GameMoveTables.Assign(value);
-			}
-		}
-		
-		public event PropertyChangingEventHandler PropertyChanging;
-		
-		public event PropertyChangedEventHandler PropertyChanged;
-		
-		protected virtual void SendPropertyChanging()
-		{
-			if ((this.PropertyChanging != null))
-			{
-				this.PropertyChanging(this, emptyChangingEventArgs);
-			}
-		}
-		
-		protected virtual void SendPropertyChanged(String propertyName)
-		{
-			if ((this.PropertyChanged != null))
-			{
-				this.PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
-			}
-		}
-		
-		private void attach_GameMoveTables(GameMoveTable entity)
-		{
-			this.SendPropertyChanging();
-			entity.GameTable = this;
-		}
-		
-		private void detach_GameMoveTables(GameMoveTable entity)
-		{
-			this.SendPropertyChanging();
-			entity.GameTable = null;
 		}
 	}
 }
