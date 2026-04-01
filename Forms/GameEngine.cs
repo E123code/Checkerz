@@ -214,29 +214,23 @@ namespace CheckerZ
                     currentGameID = currentGame.GameID;
                     snapshot = new MoveSnapshot(currentGameID, 1, gameData.playerLocations, gameData.computerLocations, 0, 0, 0, 0);
                     SaveMove();
+
+                    MessageBox.Show("Game Starts!");
+                    computerTimer.Interval = 500; // 1 second delay
+                    computerTimer.Tick += ComputerTimer_Tick;
+
+                    this.DoubleBuffered = true;
+
+                    this.SetStyle(ControlStyles.AllPaintingInWmPaint |
+                          ControlStyles.UserPaint |
+                          ControlStyles.OptimizedDoubleBuffer, true);
+                    countdownTimer.Start();
+                    comboBox1.Visible = false;
+                    GameIcon.Enabled = false;
+                    currentState = GameState.PlayerTurn;
+                    stopwatch.Start();
                 }
             }
-
-            MessageBox.Show("Game Starts!");
-            computerTimer.Interval = 500; // 1 second delay
-            computerTimer.Tick += ComputerTimer_Tick;
-
-            this.DoubleBuffered = true;
-
-            this.SetStyle(ControlStyles.AllPaintingInWmPaint |
-                  ControlStyles.UserPaint |
-                  ControlStyles.OptimizedDoubleBuffer, true);
-            countdownTimer.Start();
-            comboBox1.Visible = false;
-            GameIcon.Enabled = false;
-            currentState = GameState.PlayerTurn;
-            stopwatch.Start();
-            //GameTable currentGame = new GameTable { PlayerName = "Ofek", GameDate = DateTime.Now, GameOutcome = null, EndCondition = null };
-            //DB.GameTables.InsertOnSubmit(currentGame);
-            //DB.SubmitChanges();
-            //currentGameID = currentGame.GameID;
-            //snapshot = new MoveSnapshot(currentGameID, 1, gameData.playerLocations, gameData.computerLocations, 0, 0, 0, 0);
-            //SaveMove();
         }
 
         // logic for combo box options
@@ -311,7 +305,6 @@ namespace CheckerZ
             MessageBox.Show("Thank you for playing my game!");
             ResetGame();
             this.Refresh();
-            //this.Close();
         }
 
         //event for player win
@@ -324,7 +317,6 @@ namespace CheckerZ
             MessageBox.Show("Thank you for playing my game!");
             ResetGame();
             this.Refresh();
-            //this.Close();
         }
 
         //State machine that handles computer and player taking turn while playing
@@ -337,8 +329,8 @@ namespace CheckerZ
             // Check if player won before computer moves
             if (gameLogic.CheckWin(out outcome, out endCondition))
             {
-                SaveGame(outcome, endCondition);
                 PlayerWin();
+                SaveGame(outcome, endCondition);
                 return;
             }
             int startX = 0;
@@ -365,8 +357,8 @@ namespace CheckerZ
             {
                 outcome = GameOutcome.Win.ToString();
                 endCondition = EndCondition.ComputerBlocked.ToString();
-                SaveGame(outcome, endCondition);
                 PlayerWin();
+                SaveGame(outcome, endCondition);
                 return;
             }
 
@@ -377,8 +369,8 @@ namespace CheckerZ
 
             if (gameLogic.CheckLose(out outcome, out endCondition))
             {
-                SaveGame(outcome, endCondition);
                 ComputerWin();
+                SaveGame(outcome, endCondition);
                 return;
             }
 
@@ -600,6 +592,7 @@ namespace CheckerZ
                 selectedPiece = null;
             }
         }
+
         private void DrawOnScreen_Click(object sender, EventArgs e)
         {
             if (!painter.Drawing)
@@ -699,6 +692,7 @@ namespace CheckerZ
             DB.SubmitChanges();
             var savedGame = new { PlayerID = game.PlayerID, PlayerName = game.PlayerName, GameDate = game.GameDate, GameOutcome = game.GameOutcome, Duration = (int)stopwatch.Elapsed.TotalSeconds };
             await ApiManager.SaveGameToServer(savedGame);
+            stopwatch.Reset();
         }
 
         private void RunReplay_Click(object sender, EventArgs e)

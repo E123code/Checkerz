@@ -54,18 +54,24 @@ namespace CheckerZ
 
         private void StartGame_Click(object sender, EventArgs e)
         {
+
             foreach (DataGridViewRow row in PlayerView.Rows)
             {
-                if (Convert.ToBoolean(row.Cells["Select Player"].Value) == true)
+                // Make sure the value isn't null before checking if it's true
+                if (row.Cells["Select Player"].Value != null &&
+                    Convert.ToBoolean(row.Cells["Select Player"].Value) == true)
                 {
                     selectedID = Convert.ToInt32(row.Cells["Id"].Value);
                     selectedName = Convert.ToString(row.Cells["Name"].Value);
+
                     this.DialogResult = DialogResult.OK;
                     this.Close();
                     return;
                 }
             }
-            MessageBox.Show("No game selected!");
+
+            // Changed "game" to "player" so the message makes sense to the user!
+            MessageBox.Show("No player selected!");
         }
     }
 }
