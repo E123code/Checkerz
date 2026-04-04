@@ -1,5 +1,8 @@
-﻿using System;
+﻿using CheckerZ.Client_Server;
+using CheckerZ.Data.DB;
+using System;
 using System.Collections.Generic;
+using System.Data.Linq;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -44,6 +47,41 @@ namespace CheckerZ
             catch (Exception ex)
             {
                 MessageBox.Show("Saving to server Failed!!!","Server Error",MessageBoxButtons.OK,MessageBoxIcon.Error);
+            }
+        }
+
+        public static async Task UpdateReplayDataBase()
+        {
+            HttpResponseMessage msg = await client.GetAsync($"api/Server/SyncGames");
+            if (msg.IsSuccessStatusCode)
+            {
+                List<UpdatedGame> gameList = await msg.Content.ReadAsAsync<List<UpdatedGame>>();
+                var dictGames = gameList.ToDictionary(x=> $"{x.PlayerID},{x.GameDate:G}",y=> y.PlayerName);
+                using (ReplayDataDataContext DB = new ReplayDataDataContext())
+                {
+                    var clientGames = DB.GameTables.ToList();
+                    foreach (var game in clientGames)
+                    {
+                        string key = $"{game.PlayerID},{game.GameDate:G}";
+                        if (dictGames.ContainsKey(key))
+                        {
+                            if(game.PlayerName != dictGames[key])
+                            {
+                                game.PlayerName = dictGames[key];
+                            }
+                        }
+                        else
+                        {
+                            DB.GameTables.DeleteOnSubmit(game);
+                        }
+                    }
+                    DB.SubmitChanges();
+                }
+
+            }
+            else
+            {
+                MessageBox.Show("Error In Synching Game Data");
             }
         }
     }

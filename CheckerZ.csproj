@@ -90,6 +90,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Client-Server\ApiManager.cs" />
+    <Compile Include="Client-Server\UpdatedGame.cs" />
     <Compile Include="Logic\Controllers\Controller.cs" />
     <Compile Include="Client-Server\GameSession.cs" />
     <Compile Include="Utils\BoardGrid.cs" />

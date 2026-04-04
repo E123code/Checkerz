@@ -13,8 +13,6 @@ namespace CheckerZ
 {
     public partial class StartScreen : Form
     {
-        const string BASEADDRESS = "https://localhost:7209";
-        HttpClient client = new HttpClient();
         Session session = Session.Instance;
 
         public StartScreen()
@@ -23,14 +21,13 @@ namespace CheckerZ
         }
 
 
-        private void StartScreen_Load(object sender, EventArgs e)
+        private async void StartScreen_Load(object sender, EventArgs e)
         {
-            client.BaseAddress = new Uri(BASEADDRESS);
+            await ApiManager.UpdateReplayDataBase();
         }
 
         private async void StartSession_Click(object sender, EventArgs e)
         {
-            //string code = CodeText.Text;
             if (!int.TryParse(CodeText.Text, out int code))
             {
                 MessageBox.Show("Input Error!", "Only Numbers!", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
