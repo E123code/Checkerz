@@ -1,5 +1,6 @@
 ﻿using CheckerZ.Client_Server;
 using CheckerZ.Data.DB;
+using CheckerZ.Objects;
 using System;
 using System.Collections.Generic;
 using System.Data.Linq;
@@ -46,7 +47,7 @@ namespace CheckerZ
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Saving to server Failed!!!","Server Error",MessageBoxButtons.OK,MessageBoxIcon.Error);
+                MessageBox.Show("Saving to server Failed!!!", "Server Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -56,7 +57,7 @@ namespace CheckerZ
             if (msg.IsSuccessStatusCode)
             {
                 List<UpdatedGame> gameList = await msg.Content.ReadAsAsync<List<UpdatedGame>>();
-                var dictGames = gameList.ToDictionary(x=> $"{x.PlayerID},{x.GameDate:G}",y=> y.PlayerName);
+                var dictGames = gameList.ToDictionary(x => $"{x.PlayerID},{x.GameDate:G}", y => y.PlayerName);
                 using (ReplayDataDataContext DB = new ReplayDataDataContext())
                 {
                     var clientGames = DB.GameTables.ToList();
@@ -65,7 +66,7 @@ namespace CheckerZ
                         string key = $"{game.PlayerID},{game.GameDate:G}";
                         if (dictGames.ContainsKey(key))
                         {
-                            if(game.PlayerName != dictGames[key])
+                            if (game.PlayerName != dictGames[key])
                             {
                                 game.PlayerName = dictGames[key];
                             }
@@ -84,5 +85,22 @@ namespace CheckerZ
                 MessageBox.Show("Error In Synching Game Data");
             }
         }
+        public static async Task<MoveCommand> GetComputerMove(List<BoardLocation> playerLocations,List<BoardLocation> computerLocations)
+        {
+            GameStateRequest gameStateRequest = new GameStateRequest {PlayerLocations = playerLocations, ComputerLocations = computerLocations };
+            try
+            {
+                HttpResponseMessage msg = await client.PostAsJsonAsync($"api/Server/ComputerMove", gameStateRequest);
+                msg.EnsureSuccessStatusCode();
+                MoveCommand command = await msg.Content.ReadAsAsync<MoveCommand>();
+                return command;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Getting computer move failed!!!", "Server Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            return null;
+        }
+
     }
 }

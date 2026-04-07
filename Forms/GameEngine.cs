@@ -1,4 +1,5 @@
 ﻿using CheckerZ.Data.DB;
+using CheckerZ.Objects;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -6,6 +7,7 @@ using System.Drawing;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using static System.Windows.Forms.AxHost;
 
 namespace CheckerZ
 {
@@ -55,6 +57,8 @@ namespace CheckerZ
             computerController = new ComputerController(gameData, gameLogic);
 
         }
+
+        //resets the game to intial state so that it can be played again
         private void ResetGame()
         {
             this.DoubleBuffered = true;
@@ -77,9 +81,7 @@ namespace CheckerZ
             computerController = new ComputerController(gameData, gameLogic);
         }
 
-        // --- ALL UI EVENTS STAY HERE ---
-
-        //Displaying the game grid to the screen 
+        //Displaying the game grid to the screen and placing the pieces
 
         private void Form1_Paint(object sender, PaintEventArgs e)
         {
@@ -121,7 +123,7 @@ namespace CheckerZ
             e.Graphics.DrawImage(painter.Canvas, 0, 0);
         }
 
-
+        // movement animation of a piece that has moved in a turn
         private async Task AnimatePieceAsync(Piece pieceToMove, int targetRow, int targetCol)
         {
             // 1. Where are we starting? (Current X, Y)
@@ -157,7 +159,7 @@ namespace CheckerZ
             this.Update();
         }
 
-        // clicking mouse on screen
+        // clicking mouse on screen and allows choosing a piece to move
         private void Matrix_MouseClick(object sender, MouseEventArgs e)
         {
             if (painter.Drawing)
@@ -197,6 +199,7 @@ namespace CheckerZ
             }
         }
 
+        //starting the game 
         private void startgame_Click(object sender, EventArgs e)
         {
             if (painter.Drawing)
@@ -208,9 +211,12 @@ namespace CheckerZ
             {
                 if (selectPlayer.ShowDialog() == DialogResult.OK)
                 {
+                    //intializing new game in the replay data base and saves it
                     GameTable currentGame = new GameTable { PlayerID = selectPlayer.selectedID, PlayerName = selectPlayer.selectedName, GameDate = DateTime.Now, GameOutcome = null, EndCondition = null };
                     DB.GameTables.InsertOnSubmit(currentGame);
                     DB.SubmitChanges();
+
+                    //save player move to currently recorded replay
                     currentGameID = currentGame.GameID;
                     snapshot = new MoveSnapshot(currentGameID, 1, gameData.playerLocations, gameData.computerLocations, 0, 0, 0, 0);
                     SaveMove();
@@ -225,6 +231,9 @@ namespace CheckerZ
                           ControlStyles.UserPaint |
                           ControlStyles.OptimizedDoubleBuffer, true);
                     countdownTimer.Start();
+
+                    // disable the ui elements used to start the game so that the game wont reset
+
                     comboBox1.Visible = false;
                     GameIcon.Enabled = false;
                     currentState = GameState.PlayerTurn;
@@ -323,6 +332,7 @@ namespace CheckerZ
         private async void ComputerTimer_Tick(object sender, EventArgs e)
         {
             computerTimer.Stop(); // Stop so it only runs once per turn
+            countdownTimer.Stop();
             Piece movedPiece = null;
             string outcome;
             string endCondition;
@@ -333,18 +343,18 @@ namespace CheckerZ
                 SaveGame(outcome, endCondition);
                 return;
             }
-            int startX = 0;
-            int startY = 0;
+            //int startX = 0;
+            //int startY = 0;
             int startRow;
             int startCol;
 
             // Try to execute computer move 
-            if (computerController.ExecuteComputerMove(out movedPiece, out startX, out startY, out startRow, out startCol))
+            //if (computerController.ExecuteComputerMove(out movedPiece, out startX, out startY, out startRow, out startCol))
+            MoveCommand serverCommand = await ApiManager.GetComputerMove(gameData.playerLocations, gameData.computerLocations);
+            if (computerController.ComputerMove(serverCommand,out movedPiece, out startRow, out startCol) )
             {
                 // --- PREPARE FOR ANIMATION ---
                 // Force the visual coordinates back to the start so it can glide
-                movedPiece.X = startX;
-                movedPiece.Y = startY;
 
                 // Run the smooth animation using the new logical coordinates
                 await AnimatePieceAsync(movedPiece, movedPiece.RowIndex, movedPiece.ColIndex);
@@ -363,7 +373,6 @@ namespace CheckerZ
             }
 
             // After computer is done animating, setup player's turn
-            countdownTimer.Stop();
             countDownTimer = Convert.ToInt32(comboBox1.Text);
             currentState = GameState.PlayerTurn;
 
@@ -479,7 +488,7 @@ namespace CheckerZ
                 selectedPiece = null;
             }
         }
-
+        //reverse right button
         private async void ReverseRightClick(object sender, EventArgs e)
         {
             if (painter.Drawing)
@@ -535,7 +544,7 @@ namespace CheckerZ
                 selectedPiece = null;
             }
         }
-
+        //reverse left button
         private async void ReverseLeftClick(object sender, EventArgs e)
         {
 
@@ -593,6 +602,7 @@ namespace CheckerZ
             }
         }
 
+        //drawing mode button
         private void DrawOnScreen_Click(object sender, EventArgs e)
         {
             if (!painter.Drawing)
@@ -620,6 +630,7 @@ namespace CheckerZ
             }
         }
 
+        // clear drawing button
         private void ClearDraws_Click(object sender, EventArgs e)
         {
             Graphics g = Graphics.FromImage(painter.Canvas);
@@ -627,14 +638,7 @@ namespace CheckerZ
             this.Refresh();
         }
 
-        private void GameEngine_MouseMove(object sender, MouseEventArgs e)
-        {
-            if (painter.Drawing && e.Button == MouseButtons.Left)
-            {
-                painter.DrawOnScreen(this, e);
-            }
-        }
-
+        //gets the point you clicked to be used for painting
         private void GameEngine_MouseDown(object sender, MouseEventArgs e)
         {
             if (painter.Drawing && e.Button == MouseButtons.Left)
@@ -643,6 +647,17 @@ namespace CheckerZ
             }
         }
 
+        //while pressing right click it starts painting on the screen
+        private void GameEngine_MouseMove(object sender, MouseEventArgs e)
+        {
+            if (painter.Drawing && e.Button == MouseButtons.Left)
+            {
+                painter.DrawOnScreen(this, e);
+            }
+        }
+
+        //When user closes the game,
+        //safely dispose all graphical elements in timers to avoid resource waste in memory
         private void GameEngine_FormClosing(object sender, FormClosingEventArgs e)
         {
             if (painter.Canvas != null)
@@ -663,24 +678,31 @@ namespace CheckerZ
         }
 
 
-        //uploads the current snapshot to data base
+        //uploads the current snapshot to the player moves data base
         private void SaveMove()
         {
             GameMoveTable currentMove = new GameMoveTable
             {
                 GameID = snapshot.GameID,
                 MoveNumber = snapshot.MoveNumber,
-                PlayerLocations = string.Join(",", snapshot.PlayerLocations),
-                ComputerLocations = string.Join(",", snapshot.ComputerLocations),
+
+                // Use LINQ .Select() to explicitly grab only Row and Col!
+                PlayerLocations = string.Join(",", snapshot.PlayerLocations.Select(loc => $"[{loc.Row},{loc.Col}]")),
+                ComputerLocations = string.Join(",", snapshot.ComputerLocations.Select(loc => $"[{loc.Row},{loc.Col}]")),
+
                 StartRow = snapshot.StartRow,
                 StartCol = snapshot.StartCol,
                 TargetRow = snapshot.TargetRow,
                 TargetCol = snapshot.TargetCol
             };
+
             DB.GameMoveTables.InsertOnSubmit(currentMove);
             DB.SubmitChanges();
         }
 
+        // Upon a game end,
+        // The current game is updated with game outcome and end condition,
+        // Updates the current game in games data base
         private async void SaveGame(string outcome, string endCondition)
         {
             var game = DB.GameTables.First(Game => Game.GameID == currentGameID);
@@ -695,6 +717,7 @@ namespace CheckerZ
             stopwatch.Reset();
         }
 
+        // Button for opening the replay menu
         private void RunReplay_Click(object sender, EventArgs e)
         {
             using (ReplayMenu replay = new ReplayMenu())
@@ -707,6 +730,7 @@ namespace CheckerZ
             }
         }
 
+        // Decoding player location list from the data base upon extraction
         private List<BoardLocation> DecodeLocations(string dbString)
         {
             List<BoardLocation> list = new List<BoardLocation>();
@@ -740,6 +764,7 @@ namespace CheckerZ
             return list;
         }
 
+        //Executing replay choosen from the replay menu
         private async void ExecuteReplay()
         {
             HideUI();
@@ -804,6 +829,7 @@ namespace CheckerZ
 
         }
 
+        //Updating the board state by executing the move saved from the snapshot data base
         private void UpdateBoardState(List<BoardLocation> newPlayerLocs, List<BoardLocation> newComputerLocs)
         {
             // 1. Wipe the logical matrix clean
@@ -831,6 +857,7 @@ namespace CheckerZ
             }
         }
 
+        //Hide Ui while replay is played
         private void HideUI()
         {
             RightButton.Visible = false;
@@ -841,6 +868,8 @@ namespace CheckerZ
             timerlabel.Visible = false;
             GameIcon.Visible = false;
         }
+
+        //Showing Ui when replay end
         private void ShowUI()
         {
             RightButton.Visible = true;
@@ -851,11 +880,6 @@ namespace CheckerZ
             comboBox1.Visible = true;
             timerlabel.Visible = true;
             GameIcon.Visible = true;
-        }
-
-        private void GameDuration_Tick(object sender, EventArgs e)
-        {
-
         }
     }
 }

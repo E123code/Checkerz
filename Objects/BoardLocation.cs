@@ -6,6 +6,8 @@
 
         public int Col { get; set; }
 
+        public bool isReversed { get; set; } = false;
+
         public BoardLocation(int row, int col)
         {
             this.Row = row;
@@ -13,7 +15,7 @@
         }
         public override string ToString()
         {
-            return $"[{Row},{Col}]";
+            return $"[{Row},{Col},{isReversed}]";
         }
     }
 }

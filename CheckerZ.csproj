@@ -90,9 +90,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Client-Server\ApiManager.cs" />
+    <Compile Include="Client-Server\GameStateRequest.cs" />
     <Compile Include="Client-Server\UpdatedGame.cs" />
+    <Compile Include="Enums\GameAction.cs" />
     <Compile Include="Logic\Controllers\Controller.cs" />
     <Compile Include="Client-Server\GameSession.cs" />
+    <Compile Include="Objects\MoveCommand.cs" />
     <Compile Include="Utils\BoardGrid.cs" />
     <Compile Include="Logic\Controllers\ComputerController.cs" />
     <Compile Include="Enums\EndCondition.cs" />
