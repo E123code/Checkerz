@@ -1,5 +1,6 @@
 ﻿namespace CheckerZ
 {
+    // An object that represents the location of the piece on board based on index in matrix
     internal class BoardLocation
     {
         public int Row {  get; set; }

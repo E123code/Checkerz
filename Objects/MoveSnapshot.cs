@@ -7,6 +7,7 @@ using System.Windows.Forms;
 
 namespace CheckerZ
 {
+    // Object that represents a snapshot of a game that will be displayed during a replay
     internal class MoveSnapshot
     {
         public int GameID { get; set; }
@@ -31,6 +32,8 @@ namespace CheckerZ
             TargetRow = targetRow;
             TargetCol = targetCol;
         }
+
+        //Setting the snapshot after move is completed
         public void UpdateSnapshot(List<BoardLocation> playerLocations, List<BoardLocation> computerLocations, int startRow, int startCol, int targetRow, int targetCol)
         {
             MoveNumber++;

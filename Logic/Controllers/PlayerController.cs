@@ -6,38 +6,116 @@ using System.Threading.Tasks;
 
 namespace CheckerZ
 {
+    // A child of controller that handles the moves of the players.
+
     internal class PlayerController : Controller
         //: Admin
     {
         public PlayerController(GameData data, GameLogic logic) : base(data, logic) { }
 
-        // This acts as a bridge for your GameEngine buttons!
+        // Handles possible options to move right
         public bool AttemptMoveRight(Piece selectedPiece, int locationIndex)
         {
             int targetCol = selectedPiece.ColIndex;
             int targetRow = selectedPiece.RowIndex;
 
-            return TryCaptureUpRight(locationIndex, targetRow, targetCol, selectedPiece) || TryMoveUpRight(gameData.playerLocations, locationIndex, targetRow, targetCol, selectedPiece);
+            return TryCaptureUpRight(locationIndex, targetRow, targetCol, selectedPiece) || TryMoveUpRight(locationIndex, targetRow, targetCol, selectedPiece);
         }
+        // Handles possible options to move left
         public bool AttemptMoveLeft(Piece selectedPiece, int locationIndex)
         {
             int targetCol = selectedPiece.ColIndex;
             int targetRow = selectedPiece.RowIndex;
 
-            return TryCaptureUpLeft(locationIndex, targetRow, targetCol, selectedPiece) || TryMoveUpLeft(gameData.playerLocations, locationIndex, targetRow, targetCol, selectedPiece);
+            return TryCaptureUpLeft(locationIndex, targetRow, targetCol, selectedPiece) || TryMoveUpLeft(locationIndex, targetRow, targetCol, selectedPiece);
         }
 
 
-        // Add similar methods for AttemptMoveLeft, AttemptReverseRight, AttemptReverseLeft
+        //reverse right
+        public bool TryMoveDownRight(int locationIndex, int targetRow, int targetCol, Piece targetPiece)
+        {
+            if (targetRow + 1 < ROWNUMBER && targetCol + 1 < COLNNUMBER && gameData.Board[targetRow + 1, targetCol + 1] == null)
+            {
+                targetPiece.RowIndex++;
+                targetPiece.ColIndex++;
 
-        public bool TryCaptureUpRight(int locationIndex, int targetRow, int targetCol, Piece targetPiece) {
+                gameData.playerLocations[locationIndex].isReversed = true;
+                gameData.playerLocations[locationIndex].Row++;
+                gameData.playerLocations[locationIndex].Col++;
+
+                gameData.Board[targetRow + 1, targetCol + 1] = targetPiece;
+                gameData.Board[targetRow, targetCol] = null;
+                return true;
+            }
+            return false;
+        }
+
+        //reverse left
+        public bool TryMoveDownLeft(int locationIndex, int targetRow, int targetCol, Piece targetPiece)
+        {
+            if (targetRow + 1 < ROWNUMBER && targetCol - 1 >= 0 && gameData.Board[targetRow + 1, targetCol - 1] == null)
+            {
+                targetPiece.RowIndex++;
+                targetPiece.ColIndex--;
+
+                gameData.playerLocations[locationIndex].isReversed = true;
+                gameData.playerLocations[locationIndex].Row++;
+                gameData.playerLocations[locationIndex].Col--;
+
+                gameData.Board[targetRow + 1, targetCol - 1] = targetPiece;
+                gameData.Board[targetRow, targetCol] = null;
+                return true;
+            }
+            return false;
+
+        }
+
+        //right
+        public bool TryMoveUpRight(int locationIndex, int targetRow, int targetCol, Piece targetPiece)
+        { /* ... */
+            if (targetRow - 1 >= 0 && targetCol + 1 < COLNNUMBER && gameData.Board[targetRow - 1, targetCol + 1] == null)
+            {
+                targetPiece.RowIndex--;
+                targetPiece.ColIndex++;
+
+                gameData.playerLocations[locationIndex].Row--;
+                gameData.playerLocations[locationIndex].Col++;
+
+                gameData.Board[targetRow - 1, targetCol + 1] = targetPiece;
+                gameData.Board[targetRow, targetCol] = null;
+                return true;
+            }
+            return false;
+        }
+
+        //left
+        public bool TryMoveUpLeft(int locationIndex, int targetRow, int targetCol, Piece targetPiece)
+        { /* ... */
+            if (targetRow - 1 >= 0 && targetCol - 1 >= 0 && gameData.Board[targetRow - 1, targetCol - 1] == null)
+            {
+                targetPiece.RowIndex--;
+                targetPiece.ColIndex--;
+
+                gameData.playerLocations[locationIndex].Row--;
+                gameData.playerLocations[locationIndex].Col--;
+
+                gameData.Board[targetRow - 1, targetCol - 1] = targetPiece;
+                gameData.Board[targetRow, targetCol] = null;
+                return true;
+            }
+            return false;
+        }
+
+        //player captures
+
+        public bool TryCaptureUpRight(int locationIndex, int targetRow, int targetCol, Piece targetPiece)
+        {
             if (targetRow - 2 >= 0 && targetCol + 2 < COLNNUMBER)
             {
                 Piece midPiece = gameData.Board[targetRow - 1, targetCol + 1];
                 // Is there a player piece in the way and is the landing spot empty?
                 if (midPiece != null && !midPiece.IsPlayer && gameData.Board[targetRow - 2, targetCol + 2] == null)
                 {
-                    targetPiece.MoveUpRight(true);
                     targetPiece.RowIndex -= 2;
                     targetPiece.ColIndex += 2;
 
@@ -59,6 +137,7 @@ namespace CheckerZ
             }
             return false;
         }
+
         public bool TryCaptureUpLeft(int locationIndex, int targetRow, int targetCol, Piece targetPiece) {
             if (targetRow - 2 >= 0 && targetCol - 2 >= 0)
             {
@@ -66,7 +145,6 @@ namespace CheckerZ
                 // Is there a player piece in the way and is the landing spot empty?
                 if (midPiece != null && !midPiece.IsPlayer && gameData.Board[targetRow - 2, targetCol - 2] == null)
                 {
-                    targetPiece.MoveUpLeft(true);
                     targetPiece.RowIndex -= 2;
                     targetPiece.ColIndex -= 2;
 

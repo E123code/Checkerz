@@ -6,10 +6,10 @@ using System.Threading.Tasks;
 
 namespace CheckerZ
 {
+    //Enum for win or loss
     public enum GameOutcome
     {
         Win,
         Loss
-        //Draw // Just in case!
     }
 }

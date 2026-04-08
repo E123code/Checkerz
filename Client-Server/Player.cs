@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 namespace CheckerZ
 {
+    // class to get the players from the server and use it in the replay data base
     public class Player
     {
         public int Id { get; set; }

@@ -2,6 +2,7 @@
 {
     internal class GameLogic
     {
+        // Class to handle the logical operations of the game
         private readonly GameData gameData;
 
         // We pass constants here, or you can put them in GameData
@@ -37,7 +38,7 @@
             endCondition = null;
             return false;
         }
-
+        // check if the player lost the game
         public bool CheckLose(out string outcome, out string endCondition)
         {
             //check if computer captured all player pieces
@@ -70,11 +71,9 @@
             endCondition = null;
             return false;
         }
-
+        // Checks all possible moves for player to see if the game can continue and if not the player loses
         public bool CheckPossibleMovesForPlayer()
         {
-            // ... (Paste your exact CheckPossibleMovesForPlayer logic here) ...
-            // It uses gameData perfectly, so no changes are needed to the inner loop!
             for (int i = 0; i < gameData.playerLocations.Count; i++)
             {
                 int targetRow = gameData.playerLocations[i].Row;
@@ -85,7 +84,6 @@
                 if (targetRow - 2 >= 0 && targetCol + 2 < COLNNUMBER)
                 {
                     Piece midPiece = gameData.Board[targetRow - 1, targetCol + 1];
-                    // Is there a player piece in the way and is the landing spot empty?
                     if (midPiece != null && !midPiece.IsPlayer && gameData.Board[targetRow - 2, targetCol + 2] == null)
                         return true;
                 }
@@ -94,7 +92,6 @@
                 if (targetRow - 2 >= 0 && targetCol - 2 >= 0)
                 {
                     Piece midPiece = gameData.Board[targetRow - 1, targetCol - 1];
-                    // Is there a player piece in the way and is the landing spot empty?
                     if (midPiece != null && !midPiece.IsPlayer && gameData.Board[targetRow - 2, targetCol - 2] == null)
                         return true;
                 }
@@ -108,11 +105,11 @@
                     return true;
 
                 // check if move downright is possible
-                if (!targetPiece.Reversed && targetRow + 1 < ROWNUMBER && targetCol + 1 < COLNNUMBER && gameData.Board[targetRow + 1, targetCol + 1] == null)
+                if (!gameData.playerLocations[i].isReversed && targetRow + 1 < ROWNUMBER && targetCol + 1 < COLNNUMBER && gameData.Board[targetRow + 1, targetCol + 1] == null)
                     return true;
 
                 // check if move downleft is possible
-                if (!targetPiece.Reversed && targetRow + 1 < ROWNUMBER && targetCol - 1 >= 0 && gameData.Board[targetRow + 1, targetCol - 1] == null)
+                if (!gameData.playerLocations[i].isReversed && targetRow + 1 < ROWNUMBER && targetCol - 1 >= 0 && gameData.Board[targetRow + 1, targetCol - 1] == null)
                     return true;
             }
             return false;

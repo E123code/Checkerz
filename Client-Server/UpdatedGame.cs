@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 namespace CheckerZ.Client_Server
 {
+    // object to synchronize each game existing in server database with clients data base
     internal class UpdatedGame
     {
         public int PlayerID {  get; set; }

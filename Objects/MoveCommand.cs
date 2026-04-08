@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 
 namespace CheckerZ.Objects
 {
+    // Object that represents the desired action of the computer per turn(includes index for start postion and target postion)
     internal class MoveCommand
     {
         public GameAction Action { get; set; }

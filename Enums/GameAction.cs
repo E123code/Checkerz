@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 namespace CheckerZ.Enums
 {
+    // Enum to describe the desired action that the server sends to client
     public enum GameAction
     {
         //reverse for computer

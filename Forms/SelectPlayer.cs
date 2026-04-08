@@ -12,6 +12,7 @@ using System.Windows.Forms;
 
 namespace CheckerZ
 {
+    // Class to handle player selection before a game starts
     public partial class SelectPlayer : Form
     {
         public SelectPlayer()
@@ -22,6 +23,7 @@ namespace CheckerZ
         public int selectedID { get; private set; }
         public string selectedName {  get; private set; }
 
+        //Loads the current group of players in the session
         private void SelectPlayer_Load(object sender, EventArgs e)
         {
             PlayerBindingSource.DataSource = Session.Instance.Players;
@@ -36,6 +38,7 @@ namespace CheckerZ
             PlayerView.Columns.Insert(0, radioColumn);
         }
 
+        // Selecting a player choosen by cell
         private void PlayerView_CellContentClick_1(object sender, DataGridViewCellEventArgs e)
         {
             if (e.ColumnIndex == PlayerView.Columns["Select Player"].Index && e.RowIndex >= 0)
@@ -52,6 +55,7 @@ namespace CheckerZ
             }
         }
 
+        //Starts a game with player selected
         private void StartGame_Click(object sender, EventArgs e)
         {
 

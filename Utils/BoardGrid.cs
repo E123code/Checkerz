@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 
 namespace CheckerZ
 {
+    //An object that represents the board of the game displayed on screen
     internal class BoardGrid
     {
 

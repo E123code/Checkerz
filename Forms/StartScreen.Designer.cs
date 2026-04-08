@@ -52,6 +52,7 @@
             this.CodeText.Name = "CodeText";
             this.CodeText.Size = new System.Drawing.Size(161, 20);
             this.CodeText.TabIndex = 1;
+            this.CodeText.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
             // 
             // contextMenuStrip1
             // 
@@ -87,7 +88,10 @@
             this.Controls.Add(this.label1);
             this.Controls.Add(this.CodeText);
             this.Controls.Add(this.Title);
+            this.MaximizeBox = false;
+            this.MinimizeBox = false;
             this.Name = "StartScreen";
+            this.ShowIcon = false;
             this.Text = "StartScreen";
             this.Load += new System.EventHandler(this.StartScreen_Load);
             this.ResumeLayout(false);

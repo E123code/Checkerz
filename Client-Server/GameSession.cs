@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 namespace CheckerZ.Objects
 {
+    // Class to get players that has loged into the current session.
     public class Session
     {
         private static readonly Session instance = new Session();

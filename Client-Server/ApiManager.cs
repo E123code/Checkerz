@@ -13,6 +13,7 @@ using System.Windows.Forms;
 
 namespace CheckerZ
 {
+    //A class to handle client sides connection to the server
     internal class ApiManager
     {
         private const string BASEADDRESS = "https://localhost:7209/";
@@ -25,6 +26,7 @@ namespace CheckerZ
             client.BaseAddress = new Uri(BASEADDRESS);
         }
 
+        //sends a request for the server to get all players who logged into the current game session
         public static async Task<List<Player>> GetPlayers(int code)
         {
 
@@ -37,6 +39,8 @@ namespace CheckerZ
             }
             return null;
         }
+
+        //Sending each game that has been played to the server. Happens after every game finish
         public static async Task SaveGameToServer(object game)
         {
             try
@@ -50,7 +54,10 @@ namespace CheckerZ
                 MessageBox.Show("Saving to server Failed!!!", "Server Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
-
+        // Updating the local data base based on actions that were made in server.
+        // if a game was deleted in server it will not appear in the client.
+        // if a player was deleted,
+        // all his games will be deleted from both server and client replay database.
         public static async Task UpdateReplayDataBase()
         {
             HttpResponseMessage msg = await client.GetAsync($"api/Server/SyncGames");
@@ -85,6 +92,9 @@ namespace CheckerZ
                 MessageBox.Show("Error In Synching Game Data");
             }
         }
+        //Sending a request for the server to choose an action based on the current game state.
+        // The server returns the desired action,
+        // The client will execute the action
         public static async Task<MoveCommand> GetComputerMove(List<BoardLocation> playerLocations,List<BoardLocation> computerLocations)
         {
             GameStateRequest gameStateRequest = new GameStateRequest {PlayerLocations = playerLocations, ComputerLocations = computerLocations };

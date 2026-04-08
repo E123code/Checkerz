@@ -2,16 +2,17 @@
 using System.Threading.Tasks;
 namespace CheckerZ
 {
+    // A class that represents a piece on the board
     internal class Piece
     {
+        // Size of the piece in the ui
         public const int SIZE = 30;
-
+        // Distance between squares the piece will travel
         public const int MOVEOFFSET = 60;
 
         public const int INITIALX = 515;
 
         public const int INITIALY = 115;
-
 
         public int RowIndex {  get; set; }
 
@@ -21,22 +22,21 @@ namespace CheckerZ
 
         public int Y {get; set;}
 
+        //A flag to determine which side the piece belongs
         public bool IsPlayer { get; set; }
-
-        public bool Reversed { get; set; }
 
         public Color PieceColor { get; set; }
 
-        public Piece(int rowIndex,int colIndex, bool isPlayer, bool reversed)
+        public Piece(int rowIndex,int colIndex, bool isPlayer)
         {
             RowIndex = rowIndex;
             ColIndex = colIndex;
 
             X = INITIALX + colIndex*MOVEOFFSET;
-            Y = INITIALY + rowIndex*MOVEOFFSET;
+            Y = INITIALY + rowIndex* MOVEOFFSET;
 
             IsPlayer = isPlayer;
-            Reversed = reversed;
+
 
             if (IsPlayer)
             {
@@ -48,65 +48,7 @@ namespace CheckerZ
             }
         }
 
-        public void MoveUpRight(bool capture)
-        {
-            if (capture)
-            {
-                this.X += MOVEOFFSET * 2;
-                this.Y -= MOVEOFFSET * 2;
-            }
-            else
-            {
-                this.X += MOVEOFFSET;
-                this.Y -= MOVEOFFSET;
-            }
-        }
-
-        public void MoveUpLeft(bool capture)
-        {
-            if (capture)
-            {
-                this.X -= MOVEOFFSET * 2;
-                this.Y -= MOVEOFFSET * 2;
-            }
-            else
-            {
-                this.X -= MOVEOFFSET;
-                this.Y -= MOVEOFFSET;
-            }
-        }
-
-
-        public void MoveDownRight(bool capture)
-        {
-            if (capture)
-            {
-                this.X += MOVEOFFSET * 2;
-                this.Y += MOVEOFFSET * 2;
-            }
-            else
-            {
-                this.X += MOVEOFFSET;
-                this.Y += MOVEOFFSET;
-            }
-        }
-
-        public void MoveDownLeft(bool capture)
-        {
-
-            if (capture)
-            {
-                this.X -= MOVEOFFSET * 2;
-                this.Y += MOVEOFFSET * 2;
-            }
-            else
-            {
-                this.X -= MOVEOFFSET;
-                this.Y += MOVEOFFSET;
-            }
-        }
-
-
+        //Draw function on the board of the game
         public void Draw(Graphics g)
         {
             using (Brush brush = new SolidBrush(PieceColor))

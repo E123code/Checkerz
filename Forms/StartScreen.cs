@@ -11,6 +11,9 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 namespace CheckerZ
 {
+    //Class to handle entering the game.
+    // User has to log in to the current session on the game website with the desired players.
+    // This will generate a code which must be entered to start the game.
     public partial class StartScreen : Form
     {
         Session session = Session.Instance;
@@ -20,12 +23,13 @@ namespace CheckerZ
             InitializeComponent();
         }
 
-
+        // Get the current session player group from the server
         private async void StartScreen_Load(object sender, EventArgs e)
         {
             await ApiManager.UpdateReplayDataBase();
         }
 
+        // Starts the current session according to session code
         private async void StartSession_Click(object sender, EventArgs e)
         {
             if (!int.TryParse(CodeText.Text, out int code))
@@ -41,5 +45,6 @@ namespace CheckerZ
             else
                 MessageBox.Show($"Code {code} not found", "Invalid code", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
         }
+
     }
 }

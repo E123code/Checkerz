@@ -11,6 +11,7 @@ using System.Windows.Forms;
 
 namespace CheckerZ
 {
+    //Class to allow the user to select a record of a previously played game
     public partial class ReplayMenu : Form
     {
         private ReplayDataDataContext dataContext = new ReplayDataDataContext();
@@ -20,6 +21,7 @@ namespace CheckerZ
             InitializeComponent();
         }
 
+        //Sets up the menu to be displayed on screen
         private void ReplayMenu_Load(object sender, EventArgs e)
         {
             TblBindingSource.DataSource = dataContext.GameTables;
@@ -34,6 +36,7 @@ namespace CheckerZ
             ReplayView.Columns.Insert(0, radioColumn);
         }
 
+        //Selecting a player choosen from a cell
         private void ReplayView_CellContentClick(object sender, DataGridViewCellEventArgs e)
         {
             if (e.ColumnIndex == ReplayView.Columns["Select Replay"].Index && e.RowIndex >= 0)
@@ -50,6 +53,7 @@ namespace CheckerZ
             }
         }
 
+        //Button to start the choosen replay
         private void StartReplay_Click(object sender, EventArgs e)
         {
             foreach (DataGridViewRow row in ReplayView.Rows)

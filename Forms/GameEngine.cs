@@ -11,29 +11,55 @@ using static System.Windows.Forms.AxHost;
 
 namespace CheckerZ
 {
+    // class that handles the entire operation of the game
     public partial class GameEngine : Form
     {
+        //The context of replay data base
         private ReplayDataDataContext DB = new ReplayDataDataContext();
 
+        //Timer for each turn the player is taking.
         private int countDownTimer;
 
+        //Object for the piece the player clicked on to be used in game logic and when moving from place to place
         private Piece selectedPiece;
+
+        // Bitmap to paint the grid of the game
         private Bitmap bmp;
+
+        //The actual grid displayed on screen
         private BoardGrid grid;
+
+        //Timer to handle the state machine of the game
         private Timer computerTimer;
 
+        // Enum to handle the state the game switches from
         private enum GameState { PlayerTurn, ComputerTurn, Idle }
+
+        //Changes according to current state
         private GameState currentState;
 
+        //Object to handle the paintings displayed on the screen
         private readonly Painter painter;
+
+        //Holds the gamedata
         private GameData gameData;
+
+        //Holds the game logic
         private GameLogic gameLogic;
+
+        //Object to handle player actions
         private PlayerController playerController;
+
+        //Object to handle computer actions
         private ComputerController computerController;
 
+        //Object to save each snapshot of the game state
         private MoveSnapshot snapshot;
+
+        //Variable to be used to seperate games and allows saving in replay database
         private int currentGameID;
 
+        //Stop watch to count the actual duration of the game
         private Stopwatch stopwatch = new Stopwatch();
 
         // intialzing the game
@@ -85,36 +111,32 @@ namespace CheckerZ
 
         private void Form1_Paint(object sender, PaintEventArgs e)
         {
-            // 1. Make the graphics butter-smooth
             e.Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
 
-            // 2. Draw the board
             grid.DrawGrid(e.Graphics);
 
             Piece movingPiece = null;
 
-            // 3. Draw all stationary pieces first
             foreach (var piece in gameData.Board)
             {
                 if (piece != null)
                 {
-                    // Calculate where this piece is SUPPOSED to be based on its matrix index
+                  
                     int expectedX = Piece.INITIALX + (piece.ColIndex * Piece.MOVEOFFSET);
                     int expectedY = Piece.INITIALY + (piece.RowIndex * Piece.MOVEOFFSET);
 
-                    // If the piece's actual X/Y doesn't match its expected X/Y, it is currently animating!
+                   
                     if (piece.X != expectedX || piece.Y != expectedY)
                     {
-                        movingPiece = piece; // Save it for later
+                        movingPiece = piece; 
                     }
                     else
                     {
-                        piece.Draw(e.Graphics); // Draw normal pieces immediately
+                        piece.Draw(e.Graphics); 
                     }
                 }
             }
 
-            // 4. Draw the moving piece LAST so it perfectly hovers over the board
             if (movingPiece != null)
             {
                 movingPiece.Draw(e.Graphics);
@@ -126,33 +148,28 @@ namespace CheckerZ
         // movement animation of a piece that has moved in a turn
         private async Task AnimatePieceAsync(Piece pieceToMove, int targetRow, int targetCol)
         {
-            // 1. Where are we starting? (Current X, Y)
             int startX = pieceToMove.X;
             int startY = pieceToMove.Y;
 
-            // 2. Where are we going? (Calculate final pixels based on target matrix coordinates)
+           
             int endX = Piece.INITIALX + (targetCol * Piece.MOVEOFFSET);
             int endY = Piece.INITIALY + (targetRow * Piece.MOVEOFFSET);
 
-            int frames = 5; // Number of animation steps
+            int frames = 5; 
 
             for (int i = 1; i <= frames; i++)
             {
-                // 1. Move the math coordinates
+
                 pieceToMove.X = startX + ((endX - startX) * i / frames);
                 pieceToMove.Y = startY + ((endY - startY) * i / frames);
 
-                // 2. Queue the paint request
                 this.Invalidate();
 
-                // 3. THE FIX: Force Windows to paint the frame RIGHT NOW
                 this.Update();
 
-                // 4. Pause for the next frame
                 await Task.Delay(6);
             }
 
-            // Ensure final snap and final paint
             pieceToMove.X = endX;
             pieceToMove.Y = endY;
             this.Invalidate();
@@ -166,11 +183,21 @@ namespace CheckerZ
             {
                 return;
             }
+
             if (currentState == GameState.Idle)
             {
                 MessageBox.Show("Press the start game button");
                 return;
             }
+
+            //if the player choosen a piece already change back to player color
+            if (selectedPiece != null)
+            {
+                selectedPiece.PieceColor = Color.Blue;
+                selectedPiece = null;
+                this.Refresh();
+            }
+
             // Get the coordinates relative to the formsPlot1 control
             int x = e.X;
             int y = e.Y;
@@ -181,9 +208,15 @@ namespace CheckerZ
                     if (gameData.Board[i, j] != null)
                     {
                         Piece p = gameData.Board[i, j];
+                        
                         if (x >= p.X && x <= p.X + Piece.SIZE && y >= p.Y && y <= p.Y + Piece.SIZE)
                         {
                             selectedPiece = p;
+                            if (selectedPiece.IsPlayer)
+                            {
+                                selectedPiece.PieceColor = Color.Yellow;
+                                this.Refresh();
+                            }
 
                             // check if player select his piece
 
@@ -199,7 +232,7 @@ namespace CheckerZ
             }
         }
 
-        //starting the game 
+        //starting the current game and sets up a new replay to be recorded 
         private void startgame_Click(object sender, EventArgs e)
         {
             if (painter.Drawing)
@@ -253,7 +286,7 @@ namespace CheckerZ
             }
         }
 
-        // Timers and Blinking stay here because they control the screen!
+        //Handles the countdown timer of the player turn
         private void countdownTimer_Tick(object sender, EventArgs e)
         {
             if (countDownTimer > 0)
@@ -331,6 +364,11 @@ namespace CheckerZ
         //State machine that handles computer and player taking turn while playing
         private async void ComputerTimer_Tick(object sender, EventArgs e)
         {
+            if (selectedPiece != null)
+            {
+                selectedPiece.PieceColor = Color.Blue;
+                selectedPiece = null;
+            }
             computerTimer.Stop(); // Stop so it only runs once per turn
             countdownTimer.Stop();
             Piece movedPiece = null;
@@ -343,20 +381,15 @@ namespace CheckerZ
                 SaveGame(outcome, endCondition);
                 return;
             }
-            //int startX = 0;
-            //int startY = 0;
             int startRow;
             int startCol;
 
-            // Try to execute computer move 
-            //if (computerController.ExecuteComputerMove(out movedPiece, out startX, out startY, out startRow, out startCol))
+            // Try to execute computer move
             MoveCommand serverCommand = await ApiManager.GetComputerMove(gameData.playerLocations, gameData.computerLocations);
             if (computerController.ComputerMove(serverCommand,out movedPiece, out startRow, out startCol) )
             {
-                // --- PREPARE FOR ANIMATION ---
-                // Force the visual coordinates back to the start so it can glide
 
-                // Run the smooth animation using the new logical coordinates
+                // Run animation 
                 await AnimatePieceAsync(movedPiece, movedPiece.RowIndex, movedPiece.ColIndex);
 
                 snapshot.UpdateSnapshot(gameData.playerLocations, gameData.computerLocations, startRow, startCol, movedPiece.RowIndex, movedPiece.ColIndex);
@@ -401,7 +434,6 @@ namespace CheckerZ
             int startRow = selectedPiece.RowIndex;
             Piece targetPiece = selectedPiece;
 
-            // --- GRAB STARTING PIXELS BEFORE THE LOGIC CHANGES THEM ---
             int startX = targetPiece.X;
             int startY = targetPiece.Y;
 
@@ -415,18 +447,10 @@ namespace CheckerZ
             // Update the matrix and run the logic!
             if (playerController.AttemptMoveRight(targetPiece, locationIndex))
             {
-
-                // --- PREPARE FOR ANIMATION ---
-                // Since playerController changed pieceToAnimate.X, we force it back to the start
-                targetPiece.X = startX;
-                targetPiece.Y = startY;
-
-                // Run the smooth animation using the new logical coordinates
                 await AnimatePieceAsync(targetPiece, targetPiece.RowIndex, targetPiece.ColIndex);
 
                 snapshot.UpdateSnapshot(gameData.playerLocations, gameData.computerLocations, startRow, startCol, targetPiece.RowIndex, targetPiece.ColIndex);
                 SaveMove();
-                selectedPiece = null;
                 currentState = GameState.ComputerTurn;
                 computerTimer.Start();
                 return;
@@ -452,9 +476,6 @@ namespace CheckerZ
             int startRow = selectedPiece.RowIndex;
             Piece targetPiece = selectedPiece;
 
-            // --- GRAB STARTING PIXELS BEFORE THE LOGIC CHANGES THEM ---
-            int startX = targetPiece.X;
-            int startY = targetPiece.Y;
 
             int locationIndex = 0;
             for (int i = 0; i < gameData.playerLocations.Count; i++)
@@ -466,18 +487,10 @@ namespace CheckerZ
             // Update the matrix and run the logic!
             if (playerController.AttemptMoveLeft(targetPiece, locationIndex))
             {
-
-                // --- PREPARE FOR ANIMATION ---
-                // Since playerController changed pieceToAnimate.X, we force it back to the start
-                targetPiece.X = startX;
-                targetPiece.Y = startY;
-
-                // Run the smooth animation using the new logical coordinates
                 await AnimatePieceAsync(targetPiece, targetPiece.RowIndex, targetPiece.ColIndex);
 
                 snapshot.UpdateSnapshot(gameData.playerLocations, gameData.computerLocations, startRow, startCol, targetPiece.RowIndex, targetPiece.ColIndex);
                 SaveMove();
-                selectedPiece = null;
                 currentState = GameState.ComputerTurn;
                 computerTimer.Start();
                 return;
@@ -502,16 +515,6 @@ namespace CheckerZ
             int startRow = selectedPiece.RowIndex;
             Piece targetPiece = selectedPiece;
 
-            if (targetPiece.Reversed)
-            {
-                MessageBox.Show("Already reversed. move in another direction or select another piece");
-                return;
-            }
-
-            // --- GRAB STARTING PIXELS BEFORE THE LOGIC CHANGES THEM ---
-            int startX = targetPiece.X;
-            int startY = targetPiece.Y;
-
             int locationIndex = 0;
             for (int i = 0; i < gameData.playerLocations.Count; i++)
             {
@@ -519,21 +522,21 @@ namespace CheckerZ
                     locationIndex = i;
             }
 
-            // Update the matrix and run the logic!
-            if (playerController.TryMoveDownRight(gameData.playerLocations, locationIndex, startRow, startCol, targetPiece))
+            if (gameData.playerLocations[locationIndex].isReversed)
             {
+                MessageBox.Show("Already reversed. move in another direction or select another piece");
+                return;
+            }
 
-                // --- PREPARE FOR ANIMATION ---
-                // Since playerController changed pieceToAnimate.X, we force it back to the start
-                targetPiece.X = startX;
-                targetPiece.Y = startY;
 
-                // Run the smooth animation using the new logical coordinates
+            // Update the matrix and run the logic!
+            if (playerController.TryMoveDownRight( locationIndex, startRow, startCol, targetPiece))
+            {
                 await AnimatePieceAsync(targetPiece, targetPiece.RowIndex, targetPiece.ColIndex);
 
                 snapshot.UpdateSnapshot(gameData.playerLocations, gameData.computerLocations, startRow, startCol, targetPiece.RowIndex, targetPiece.ColIndex);
                 SaveMove();
-                selectedPiece = null;
+
                 currentState = GameState.ComputerTurn;
                 computerTimer.Start();
                 return;
@@ -559,16 +562,6 @@ namespace CheckerZ
             int startRow = selectedPiece.RowIndex;
             Piece targetPiece = selectedPiece;
 
-            if (targetPiece.Reversed)
-            {
-                MessageBox.Show("Already reversed. move in another direction or select another piece");
-                return;
-            }
-
-            // --- GRAB STARTING PIXELS BEFORE THE LOGIC CHANGES THEM ---
-            int startX = targetPiece.X;
-            int startY = targetPiece.Y;
-
             int locationIndex = 0;
             for (int i = 0; i < gameData.playerLocations.Count; i++)
             {
@@ -576,21 +569,20 @@ namespace CheckerZ
                     locationIndex = i;
             }
 
-            // Update the matrix and run the logic!
-            if (playerController.TryMoveDownLeft(gameData.playerLocations, locationIndex, startRow, startCol, targetPiece))
+            if (gameData.playerLocations[locationIndex].isReversed)
             {
+                MessageBox.Show("Already reversed. move in another direction or select another piece");
+                return;
+            }
 
-                // --- PREPARE FOR ANIMATION ---
-                // Since playerController changed pieceToAnimate.X, we force it back to the start
-                targetPiece.X = startX;
-                targetPiece.Y = startY;
-
-                // Run the smooth animation using the new logical coordinates
+            // Update the matrix and run the logic!
+            if (playerController.TryMoveDownLeft(locationIndex, startRow, startCol, targetPiece))
+            {
                 await AnimatePieceAsync(targetPiece, targetPiece.RowIndex, targetPiece.ColIndex);
 
                 snapshot.UpdateSnapshot(gameData.playerLocations, gameData.computerLocations, startRow, startCol, targetPiece.RowIndex, targetPiece.ColIndex);
                 SaveMove();
-                selectedPiece = null;
+
                 currentState = GameState.ComputerTurn;
                 computerTimer.Start();
                 return;
@@ -740,23 +732,18 @@ namespace CheckerZ
                 return list;
             }
 
-            // 1. Strip away all the brackets. 
-            // "[6,1],[6,3]" becomes "6,1,6,3"
             string cleanedString = dbString.Replace("[", "").Replace("]", "");
 
-            // 2. Split what is left by the commas
             string[] numbers = cleanedString.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
 
-            // 3. Loop through the array two steps at a time to grab the Row/Col pairs
+       
             for (int i = 0; i < numbers.Length; i += 2)
             {
-                // Ensure we don't go out of bounds if the string is malformed
                 if (i + 1 < numbers.Length)
                 {
                     int row = int.Parse(numbers[i]);
                     int col = int.Parse(numbers[i + 1]);
 
-                    // Rebuild the object and add it to the list
                     list.Add(new BoardLocation(row, col));
                 }
             }
@@ -781,6 +768,7 @@ namespace CheckerZ
                         move.StartCol,
                         move.TargetRow,
                         move.TargetCol);
+
             foreach (var move in moves)
             {
                 if (move.MoveNumber == 1)
@@ -795,19 +783,17 @@ namespace CheckerZ
                 }
 
                 await Task.Delay(1000);
-                // 1. Find the piece that needs to move on the CURRENT board
+                
                 Piece visualPiece = gameData.Board[move.StartRow, move.StartCol];
                 if (visualPiece != null)
                 {
-                    // 2. Visually glide it across the screen to the target
+                    
                     await AnimatePieceAsync(visualPiece, move.TargetRow, move.TargetCol);
                 }
-
-                // 3. Now that the animation is done, officially update the GameData logic 
+ 
                 // using the lists you decoded from the database for this specific move.
                 UpdateBoardState(move.PlayerLocations, move.ComputerLocations);
 
-                // 4. Force a final repaint to clear away any captured pieces
                 this.Refresh();
             }
             var game = DB.GameTables.First(g => g.GameID == currentGameID);
@@ -832,28 +818,23 @@ namespace CheckerZ
         //Updating the board state by executing the move saved from the snapshot data base
         private void UpdateBoardState(List<BoardLocation> newPlayerLocs, List<BoardLocation> newComputerLocs)
         {
-            // 1. Wipe the logical matrix clean
             Array.Clear(gameData.Board, 0, gameData.Board.Length);
 
-            // 2. Overwrite the tracking lists in GameData
             gameData.playerLocations.Clear();
             gameData.playerLocations.AddRange(newPlayerLocs);
 
             gameData.computerLocations.Clear();
             gameData.computerLocations.AddRange(newComputerLocs);
 
-            // 3. Rebuild the Player pieces on the matrix
             foreach (var loc in gameData.playerLocations)
             {
-                // Parameters: row, col, isPlayer (true), isReversed (false default based on db save)
-                gameData.Board[loc.Row, loc.Col] = new Piece(loc.Row, loc.Col, true, false);
+                
+                gameData.Board[loc.Row, loc.Col] = new Piece(loc.Row, loc.Col, true);
             }
 
-            // 4. Rebuild the Computer pieces on the matrix
             foreach (var loc in gameData.computerLocations)
             {
-                // Parameters: row, col, isPlayer (false), isReversed (false default)
-                gameData.Board[loc.Row, loc.Col] = new Piece(loc.Row, loc.Col, false, false);
+                gameData.Board[loc.Row, loc.Col] = new Piece(loc.Row, loc.Col, false);
             }
         }
 

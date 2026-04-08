@@ -9,6 +9,7 @@ using System.Windows.Forms;
 
 namespace CheckerZ
 {
+    // Objects that handles painting on the screen
     internal class Painter
     {
         public Bitmap Canvas;
